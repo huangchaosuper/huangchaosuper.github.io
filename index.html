@@ -9,12 +9,11 @@
 <link rel="shortcut icon" href="./images/favicon.ico">
 
 <title>huangchaosuper</title>
-
 <!-- Bootstrap core CSS -->
-<link href="stylesheets/bootstrap.min.css" rel="stylesheet">
+<link href="stylesheets/bootstrap.cerulean.min.css" rel="stylesheet">
 
 <!-- Custom styles for this template -->
-<link href="stylesheets/site.css" rel="stylesheet">
+<link href="stylesheets/main.css" rel="stylesheet">
 <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
 <!--[if lt IE 9]>
       <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
@@ -23,36 +22,31 @@
 </head>
 
 <body>
-	<div class="site-wrapper">
-		<div class="site-wrapper-inner">
-			<div class="cover-container">
-				<div class="masthead clearfix">
-					<div class="inner">
-						<h3 class="masthead-brand">huangchaosuper@gmail.com</h3>
-						<ul class="nav masthead-nav">
-							<li class="active"><a href="/blog">BLOG</a></li>
-						</ul>
-					</div>
-				</div>
-
-				<div class="inner cover">
-					<!-- h1 class="cover-heading">About Me</h1-->
-					<p class="lead">
-						<a href="#" class="btn btn-lg btn-default">About Me</a>
-					</p>
-					<p class="lead">黄超，现就职于HP TS R&D部门，主要负责Devops工作。</p>
-					<p class="lead">喜欢研究新技术，从小的愿望是当一名科学家，至今未能如愿。</p>
-				</div>
-
-				<div class="mastfoot">
-					<div class="inner">
-						<p>
-							copyright @<a href="http://huangchaosuper.github.io">huangchaosuper</a>,2014.
-						</p>
-					</div>
-				</div>
+	<div class="navbar navbar-fixed-top navbar-inverse" role="navigation">
+		<div class="container">
+			<div class="navbar-header">
+				<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+					<span class="sr-only">Toggle navigation</span> <span class="icon-bar"></span> <span class="icon-bar"></span> <span class="icon-bar"></span>
+				</button>
+				<a class="navbar-brand" href="#">HC | SITE</a>
+			</div>
+			<div class="collapse navbar-collapse">
+				<ul class="nav navbar-nav">
+					<li><a href="/index.html">HOME</a></li>
+					<li><a href="/blog/">BLOG</a></li>
+				</ul>
 			</div>
 		</div>
+	</div>
+	<div class="container">
+		<iframe src='http://cdn.knightlab.com/libs/timeline/latest/embed/index.html?source=0An4wvW7NJ-tNdF9WVGZNaG91ZTAtUGpNQTcwcXVUVmc&font=Bevan-PotanoSans&maptype=toner&lang=en&height=650' width='100%' height='650' frameborder='0'></iframe>
+		<footer>
+			<span>&copy; 2014~
+             | Powered by <a href="http://timeline.knightlab.com/">knightlab</a> 
+             | Hosted by <a href="http://github.com">Github.com</a> 
+             | UI Designed by <a href="{{site.url}}">huangchaosuper</a>
+			</span>
+		</footer>
 	</div>
 	<script src="javascripts/bootstrap.min.js"></script>
 </body>
