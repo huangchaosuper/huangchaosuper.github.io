@@ -11,79 +11,95 @@
             "media":"http://huangchaosuper.github.io/images/huangchao.png",
             "credit":"",
             "caption":""
-            },
-            "date": [
+        },
+        "date": [
             {
                 "startDate":"2011,4,5",
                 "headline":"WATF1.0发布",
                 "text":"<p>windows automation test framework 发布，定位为自动化测试编译内核，实现xml脚本驱动，自定义插件扩展的一个框架，引用当时还在beta阶段的.net4.0新特征动态类型等技术。开源地址：http://github.com/huangchaosuper/watf</P>"
-                },
+            },
+            {
+                "startDate":"2012,5,1",
+                "headline":"婚庆系统",
+                "text":"<p>O2O婚庆解决方案正式发布，包括线上礼金，婚礼现场签到，智能请柬等。</p>",
+                "asset":
                 {
-                    "startDate":"2012,5,1",
-                    "headline":"婚庆系统",
-                    "text":"<p>O2O婚庆解决方案正式发布，包括线上礼金，婚礼现场签到，智能请柬等。</p>",
-                    "asset":
-                    {
-                        "media":"http://huangchaosuper.github.io/images/wedding.jpg",
-                        "credit":"",
-                        "caption":""
-                    }
-                    },
-                    {
-                        "startDate":"2012,7,1",
-                        "headline":"新浪微博插件",
-                        "text":"<p>新浪微博正火之时，写了一个定时发送微博的插件，整理后放在此网站重新上线：http://rtclient.huangchaosuper.cn</p>",
-                        "asset":
-                        {
-                            "media":"http://blog.huangchaosuper.cn/resources/rtclient-1.jpg",
-                            "credit":"",
-                            "caption":""
-                        }
-                        },
-                        {
-                            "startDate":"2014,3,1",
-                            "headline":"个人博客",
-                            "text":"<p>个人BLOG正式入驻Github，伴随BLOG的Template同时发布，源代码托管于Github，开源地址：http://github.com/huangchaosuper/blog</p>",
-                            "asset":
-                            {
-                                "media":"http://huangchaosuper.github.io/images/born.jpg",
-                                "credit":"",
-                                "caption":""
-                            }
-                            },
-                            {
-                                "startDate":"2014,5,1",
-                                "headline":"RSS Reader Service",
-                                "text":"<p>RSS Reader Service正式发布，服务托管于百度开放云，源代码即将托管于Github，演示地址：http://blog.huangchaosuper.cn/geek.html</p>",
-                                "asset":
-                                {
-                                    "media":"http://huangchaosuper.github.io/images/rrs.png",
-                                    "credit":"",
-                                    "caption":""
-                                }
-                                },
-                                {
-                                    "startDate":"2014,6,1",
-                                    "headline":"Node For UPYUN",
-                                    "text":"<p>SDK of UPYUN正式发布，源码托管于GitCafe，项目发布于NPM，开源地址：http://gitcafe.com/huangchaosuper/node-for-UPYUN</p>",
-                                    "asset":
-                                    {
-                                        "media":"http://huangchaosuper.github.io/images/upyun.jpg",
-                                        "credit":"",
-                                        "caption":""
-                                    }
-                                    },
-                                    {
-                                        "startDate":"2014,6,4",
-                                        "headline":"WebUI For UPYUN",
-                                        "text":"<p>部署在UPYUN上的UPYUN管理界面，开源地址：https://gitcafe.com/huangchaosuper/WebUI-for-UPYUN</p>",
-                                        "asset":
-                                        {
-                                            "media":"http://huangchaosuper.github.io/images/upyun/2014-06-01_174606.png",
-                                            "credit":"",
-                                            "caption":""
-                                        }
-                                    }
-                                    ]
-                                }
-                            }
+                    "media":"http://huangchaosuper.github.io/images/wedding.jpg",
+                    "credit":"",
+                    "caption":""
+                }
+            },
+            {
+                "startDate":"2012,7,1",
+                "headline":"新浪微博插件",
+                "text":"<p>新浪微博正火之时，写了一个定时发送微博的插件，整理后放在此网站重新上线：http://rtclient.huangchaosuper.cn</p>",
+                "asset":
+                {
+                    "media":"http://blog.huangchaosuper.cn/resources/rtclient-1.jpg",
+                    "credit":"",
+                    "caption":""
+                }
+            },
+            {
+                "startDate":"2013,5,1",
+                "headline":"Tech Con 2013:Next Generation Web Application",
+                "text":"<p>作为第一作者发表论文：下一代web应用，以公司名义在美国申请专利，http://huangchaosuper.cn/images/NextGenerationWebApplication.pdf</p>"
+            },
+            {
+                "startDate":"2013,12,1",
+                "headline":"EMS(Environment Monitor Service)",
+                "text":"<p>环境监控解决方案，可以即插即用，重写了TestNG模块，开发人员可以直接写UT完成监控</p>",
+                "asset":
+                {
+                    "media":"http://blog.huangchaosuper.cn/images/EMS.png",
+                    "credit":"",
+                    "caption":""
+                }
+            },
+            {
+                "startDate":"2014,3,1",
+                "headline":"个人博客",
+                "text":"<p>个人BLOG正式入驻Github，伴随BLOG的Template同时发布，源代码托管于Github，开源地址：http://github.com/huangchaosuper/blog</p>",
+                "asset":
+                {
+                    "media":"http://huangchaosuper.github.io/images/born.jpg",
+                    "credit":"",
+                    "caption":""
+                }
+            },
+            {
+                "startDate":"2014,5,1",
+                "headline":"RSS Reader Service",
+                "text":"<p>RSS Reader Service正式发布，服务托管于百度开放云，源代码即将托管于Github，演示地址：http://blog.huangchaosuper.cn/geek.html</p>",
+                "asset":
+                {
+                    "media":"http://huangchaosuper.github.io/images/rrs.png",
+                    "credit":"",
+                    "caption":""
+                }
+            },
+            {
+                "startDate":"2014,6,1",
+                "headline":"Node For UPYUN",
+                "text":"<p>SDK of UPYUN正式发布，源码托管于GitCafe，项目发布于NPM，开源地址：http://gitcafe.com/huangchaosuper/node-for-UPYUN</p>",
+                "asset":
+                {
+                    "media":"http://huangchaosuper.github.io/images/upyun.jpg",
+                    "credit":"",
+                    "caption":""
+                }
+            },
+            {
+                "startDate":"2014,6,4",
+                "headline":"WebUI For UPYUN",
+                "text":"<p>部署在UPYUN上的UPYUN管理界面，开源地址：https://gitcafe.com/huangchaosuper/WebUI-for-UPYUN</p>",
+                "asset":
+                {
+                    "media":"http://huangchaosuper.github.io/images/upyun/2014-06-01_174606.png",
+                    "credit":"",
+                    "caption":""
+                }
+            }
+        ]
+    }
+}
