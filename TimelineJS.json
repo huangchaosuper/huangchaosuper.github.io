@@ -19,6 +19,17 @@
                 "text":"<p>windows automation test framework 发布，定位为自动化测试编译内核，实现xml脚本驱动，自定义插件扩展的一个框架，引用当时还在beta阶段的.net4.0新特征动态类型等技术。开源地址：http://github.com/huangchaosuper/watf</P>"
             },
             {
+                "startDate":"2011,7,1",
+                "headline":"API Automation Testing Framework",
+                "text":"<p>API测试框架设计，以公司名义在美国申请专利(700216975)</p>"
+                "asset":
+                {
+                    "media":"http://huangchaosuper.cn/images/automation.png",
+                    "credit":"",
+                    "caption":""
+                }
+            },
+            {
                 "startDate":"2012,5,1",
                 "headline":"婚庆系统",
                 "text":"<p>O2O婚庆解决方案正式发布，包括线上礼金，婚礼现场签到，智能请柬等。</p>",
@@ -43,7 +54,13 @@
             {
                 "startDate":"2013,5,1",
                 "headline":"Tech Con 2013:Next Generation Web Application",
-                "text":"<p>作为第一作者发表论文：下一代web应用，以公司名义在美国申请专利，http://huangchaosuper.cn/images/NextGenerationWebApplication.pdf</p>"
+                "text":"<p>作为第一作者发表论文：下一代web应用，以公司名义在美国申请专利(700214433)，http://huangchaosuper.cn/images/NextGenerationWebApplication.pdf</p>"
+                "asset":
+                {
+                    "media":"http://huangchaosuper.cn/images/Crazywolf.png",
+                    "credit":"",
+                    "caption":""
+                }
             },
             {
                 "startDate":"2013,12,1",
