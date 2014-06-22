@@ -4,7 +4,7 @@
     {
         "headline":"个人简介",
         "type":"default",
-		"text":"诞生于1985年的我，曾先后就职于华腾(HuaTeng)、博彦(BeyondSoft)和惠普(HP)，现就职于奇思信息，专注游戏数据引擎开发",
+		"text":"诞生于1985年的我，曾先后就职于华腾、博彦和惠普(HP)，现就职于奇思信息，专注游戏数据引擎开发",
 		"startDate":"1985,7,26",
         "date": [
             {
@@ -48,7 +48,7 @@
 			{
                 "startDate":"2014,5,1",
                 "headline":"RSS Reader Service",
-                "text":"<p>RSS Reader Service正式发布，服务托管于百度开放云，源代码即将托管于Github</p>",
+                "text":"<p>RSS Reader Service正式发布，服务托管于百度开放云，源代码即将托管于Github，演示地址：http://blog.huangchaosuper.cn/geek.html</p>",
                 "asset":
                 {
                     "media":"http://huangchaosuper.github.io/images/rrs.png",
@@ -73,7 +73,7 @@
                 "text":"<p>部署在UPYUN上的UPYUN管理界面，开源地址：https://gitcafe.com/huangchaosuper/WebUI-for-UPYUN</p>",
                 "asset":
                 {
-                    "media":"http://huangchaosuper.github.io/images/2014-06-01_174606.png",
+                    "media":"http://huangchaosuper.github.io/images/upyun/2014-06-01_174606.png",
                     "credit":"",
                     "caption":""
                 }
