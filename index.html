@@ -42,12 +42,20 @@
 		</div>
 	</div>
 	<div class="container">
-		<iframe src='http://cdn.knightlab.com/libs/timeline/latest/embed/index.html?source=0An4wvW7NJ-tNdF9WVGZNaG91ZTAtUGpNQTcwcXVUVmc&font=Bevan-PotanoSans&maptype=toner&lang=en&height=650' width='100%' height='650' frameborder='0'></iframe>
+		<div id="timeline-embed"></div>      
+		<script type="text/javascript">
+			var timeline_config = {
+				width: "100%",
+				height: "650",
+				source: 'TimelineJS.json'
+			}
+		</script>
+		<script type="text/javascript" src="./TimelineJS/build/js/storyjs-embed.js"></script>
 		<footer>
 			<span>&copy; 2014~
-             | Powered by <a href="http://timeline.knightlab.com/">knightlab</a> 
-             | Hosted by <a href="http://github.com">Github.com</a> 
-             | UI Designed by <a href="http://huangchaosuper.cn">huangchaosuper</a>
+				| Powered by <a href="http://timeline.knightlab.com/">knightlab</a> 
+				| Hosted by <a href="http://github.com">Github.com</a> 
+				| UI Designed by <a href="http://huangchaosuper.cn">huangchaosuper</a>
 			</span>
 		</footer>
 	</div>
