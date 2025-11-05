@@ -420,28 +420,34 @@ function normalizeNumberString(raw) {
   if (!raw) {
     return 'NaN';
   }
+
   let value = String(raw).replace(/["\s]/g, '');
   if (!value) {
     return 'NaN';
   }
 
-  if (/^\d{1,3}(,\d{3})+(\.\d+)?$/.test(value)) {
-    // US thousand separators
-    value = value.replace(/,/g, '');
+  // 1️⃣ 普通小数：只包含数字和最多一个点，例如 2.261、103140.1、0.5413
+  if (/^\d+(\.\d+)?$/.test(value)) {
     return value;
   }
 
-  if (/^\d{1,3}(\.\d{3})+(,\d+)?$/.test(value)) {
-    // European format e.g. 1.234.567,89
-    value = value.replace(/\./g, '').replace(',', '.');
-    return value;
-  }
-
+  // 2️⃣ 只用逗号做小数点（没有千分位），例如 101715,30
   if (/^\d+(,\d+)?$/.test(value) && value.includes(',')) {
-    // Decimal comma without thousands e.g. 101715,30
-    value = value.replace(',', '.');
-    return value;
+    return value.replace(',', '.');
   }
 
+  // 3️⃣ 美式千分位：1,234,567.89
+  if (/^\d{1,3}(,\d{3})+(\.\d+)?$/.test(value)) {
+    return value.replace(/,/g, '');
+  }
+
+  // 4️⃣ 欧式千分位：1.234.567,89
+  //    这里要求同时出现 '.' 和 ','，避免把 2.261 这种普通小数当成千分位
+  if (value.includes('.') && value.includes(',') &&
+      /^\d{1,3}(\.\d{3})+(,\d+)?$/.test(value)) {
+    return value.replace(/\./g, '').replace(',', '.');
+  }
+
+  // 兜底
   return value;
 }
