@@ -7,9 +7,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const tickerEl = document.getElementById('coin-ticker');
   const highlightsEl = document.getElementById('index-highlights');
   const updatedEl = document.getElementById('chart-updated');
-  const dictUpdateEl = document.getElementById('dict-update');
+  const rangeLabelEl = document.getElementById('range-label');
   const percentToggle = document.getElementById('mode-percent');
   const absoluteToggle = document.getElementById('mode-absolute');
+  const rangeAllToggle = document.getElementById('range-all');
+  const range72hToggle = document.getElementById('range-72h');
   const chartContainer = document.getElementById('index-chart');
 
   if (!chartContainer || typeof echarts === 'undefined') {
@@ -17,7 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return;
   }
 
-  fetch('./data/coin.csv', { cache: 'no-store' })
+  fetch('./data/market.csv', { cache: 'no-store' })
     .then((response) => {
       if (!response.ok) {
         throw new Error(`无法加载币种数据（${response.status}）`);
@@ -25,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return response.text();
     })
     .then((text) => {
-      const coins = parseCoinCsv(text);
+      const coins = parseMarketCsv(text);
       if (!coins.length) {
         throw new Error('币种数据为空');
       }
@@ -53,12 +55,14 @@ document.addEventListener('DOMContentLoaded', () => {
       const chart = echarts.init(chartContainer, null, { renderer: 'canvas' });
       const state = {
         mode: 'absolute',
-        data: parsed,
+        range: 'all',
+        rawData: parsed,
+        data: filterDataByRange(parsed, 'all'),
         chart
       };
 
       updateChart(state);
-      updateHighlights(state, highlightsEl, updatedEl);
+      updateHighlights(state, highlightsEl, updatedEl, rangeLabelEl);
 
       window.addEventListener('resize', () => {
         chart.resize();
@@ -77,34 +81,32 @@ document.addEventListener('DOMContentLoaded', () => {
           updateChart(state);
         }
       });
+
+      rangeAllToggle?.addEventListener('change', () => {
+        if (rangeAllToggle.checked) {
+          state.range = 'all';
+          state.data = filterDataByRange(state.rawData, state.range);
+          updateChart(state);
+          updateHighlights(state, highlightsEl, updatedEl, rangeLabelEl);
+        }
+      });
+
+      range72hToggle?.addEventListener('change', () => {
+        if (range72hToggle.checked) {
+          state.range = '72h';
+          state.data = filterDataByRange(state.rawData, state.range);
+          updateChart(state);
+          updateHighlights(state, highlightsEl, updatedEl, rangeLabelEl);
+        }
+      });
     })
     .catch((error) => {
       console.error(error);
       if (updatedEl) {
         updatedEl.textContent = `加载失败：${error.message}`;
       }
-    });
-
-  fetch('./data/dict.csv', { cache: 'no-store' })
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error(`无法加载字典数据（${response.status}）`);
-      }
-      return response.text();
-    })
-    .then((text) => {
-      const dict = parseDictCsv(text);
-      if (dictUpdateEl) {
-        const timestamp = dict.update_timestamp;
-        dictUpdateEl.textContent = timestamp
-          ? `数据更新时间：${timestamp}`
-          : '数据更新时间：-';
-      }
-    })
-    .catch((error) => {
-      console.error(error);
-      if (dictUpdateEl) {
-        dictUpdateEl.textContent = `数据更新时间加载失败：${error.message}`;
+      if (rangeLabelEl) {
+        rangeLabelEl.textContent = '--';
       }
     });
 });
@@ -148,7 +150,7 @@ function renderTicker(coins, tickerEl) {
   });
 }
 
-function parseCoinCsv(input) {
+function parseMarketCsv(input) {
   return input
     .trim()
     .split(/\r?\n/)
@@ -185,10 +187,14 @@ function parseCsv(input) {
     .map((line) => {
       const [cmc20, cmc100, indexValue, timestamp] = line.split(',');
       const isoLike = timestamp.replace(' ', 'T');
+      const cmc20Value = parseFloat(normalizeNumberString(cmc20));
+      const cmc100Value = parseFloat(normalizeNumberString(cmc100));
+      const parsedIndex = parseFloat(normalizeNumberString(indexValue));
+      const adjustedIndex = Number.isFinite(parsedIndex) ? parsedIndex / 5 : parsedIndex;
       return {
-        cmc20: parseFloat(cmc20),
-        cmc100: parseFloat(cmc100),
-        index: parseFloat(indexValue),
+        cmc20: cmc20Value,
+        cmc100: cmc100Value,
+        index: adjustedIndex,
         timestamp,
         time: new Date(isoLike)
       };
@@ -197,13 +203,13 @@ function parseCsv(input) {
 }
 
 function updateChart(state) {
-  const { chart, data, mode } = state;
+  const { chart, data, rawData, mode } = state;
   if (!chart || !data.length) {
     return;
   }
 
   const colors = ['#4c6ef5', '#fa8c16', '#2fb344'];
-  const base = data[0];
+  const base = data[0] || rawData[0];
 
   const series = [
     {
@@ -218,7 +224,7 @@ function updateChart(state) {
     },
     {
       key: 'index',
-      name: 'Custom Index',
+      name: 'QUANT2025',
       color: colors[2]
     }
   ].map((serie) => ({
@@ -304,7 +310,9 @@ function updateChart(state) {
         lineStyle: {
           color: '#e9ecef'
         }
-      }
+      },
+      min: (value) => value.min,
+      max: (value) => value.max
     },
     series
   };
@@ -312,8 +320,8 @@ function updateChart(state) {
   chart.setOption(option, true);
 }
 
-function updateHighlights(state, highlightsEl, updatedEl) {
-  const { data } = state;
+function updateHighlights(state, highlightsEl, updatedEl, rangeLabelEl) {
+  const { data, range } = state;
   if (!data || !data.length) {
     return;
   }
@@ -321,16 +329,22 @@ function updateHighlights(state, highlightsEl, updatedEl) {
   const first = data[0];
   const last = data[data.length - 1];
 
+  const formatter = new Intl.DateTimeFormat('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  });
+  const latestText = `最新更新时间：${formatter.format(last.time)}`;
+
   if (updatedEl) {
-    const formatter = new Intl.DateTimeFormat('zh-CN', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit'
-    });
-    updatedEl.textContent = `最新更新时间：${formatter.format(last.time)}`;
+    updatedEl.textContent = latestText;
+  }
+
+  if (rangeLabelEl) {
+    rangeLabelEl.textContent = range === '72h' ? '72H' : 'ALL';
   }
 
   if (!highlightsEl) {
@@ -362,7 +376,7 @@ function updateHighlights(state, highlightsEl, updatedEl) {
   highlightsEl.innerHTML = [
     makeListItem('CMC20', last.cmc20, first.cmc20),
     makeListItem('CMC100', last.cmc100, first.cmc100),
-    makeListItem('Custom Index', last.index, first.index),
+    makeListItem('QUANT2025', last.index, first.index),
     `<li class="pt-3 small text-muted">数据点数量：${data.length}</li>`
   ].join('');
 }
@@ -372,6 +386,20 @@ function normalizePercent(value, base) {
     return 0;
   }
   return ((value - base) / base) * 100;
+}
+
+function filterDataByRange(data, range) {
+  if (range !== '72h' || !Array.isArray(data) || !data.length) {
+    return data;
+  }
+
+  const latest = data[data.length - 1];
+  if (!latest || !(latest.time instanceof Date)) {
+    return data;
+  }
+
+  const cutoff = latest.time.getTime() - 72 * 60 * 60 * 1000;
+  return data.filter((item) => item.time instanceof Date && item.time.getTime() >= cutoff);
 }
 
 function formatValue(value, mode) {
@@ -386,23 +414,6 @@ function formatValue(value, mode) {
     currency: 'USD',
     maximumFractionDigits: value >= 1000 ? 2 : 4
   }).format(value);
-}
-
-function parseDictCsv(text) {
-  const rows = text
-    .trim()
-    .split(/\r?\n/)
-    .slice(1)
-    .filter(Boolean);
-  return rows.reduce((acc, row) => {
-    const [key, ...rest] = row.split(',');
-    if (!key) {
-      return acc;
-    }
-    const value = rest.join(',').trim();
-    acc[key.trim()] = value;
-    return acc;
-  }, {});
 }
 
 function normalizeNumberString(raw) {

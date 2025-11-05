@@ -24,6 +24,7 @@
         </button>
         <div class="collapse navbar-collapse" id="primary-nav">
           <ul class="navbar-nav ms-auto text-uppercase small fw-semibold align-items-lg-center gap-lg-4">
+            <li class="nav-item"><a class="nav-link" href="./about.html">About</a></li>
             <li class="nav-item d-none d-lg-inline">|</li>
             <li class="nav-item"><a class="nav-link" href="http://aimeta.website" target="_blank" rel="noopener">AIMETA</a></li>
           </ul>
@@ -46,18 +47,30 @@
               <div class="panel-title text-uppercase fw-bold small text-muted">Total Index Value</div>
               <h1 class="h3 fw-bold mb-0 text-primary-emphasis">CMC20 · CMC100 · QUANT2025</h1>
             </div>
-            <div class="btn-group btn-group-sm" role="group" aria-label="Value type">
-              <input type="radio" class="btn-check" name="value-mode" id="mode-absolute" autocomplete="off" checked>
-              <label class="btn btn-outline-dark px-3" for="mode-absolute">$</label>
-              <input type="radio" class="btn-check" name="value-mode" id="mode-percent" autocomplete="off">
-              <label class="btn btn-outline-dark px-3" for="mode-percent">%</label>
+            <div class="panel-actions d-flex flex-column align-items-end gap-2">
+              <div class="d-flex gap-2 flex-wrap justify-content-end">
+                <div class="btn-group btn-group-sm" role="group" aria-label="Value type">
+                  <input type="radio" class="btn-check" name="value-mode" id="mode-absolute" autocomplete="off" checked>
+                  <label class="btn btn-outline-dark px-3" for="mode-absolute">$</label>
+                  <input type="radio" class="btn-check" name="value-mode" id="mode-percent" autocomplete="off">
+                  <label class="btn btn-outline-dark px-3" for="mode-percent">%</label>
+                </div>
+                <div class="btn-group btn-group-sm" role="group" aria-label="Range filter">
+                  <input type="radio" class="btn-check" name="range-mode" id="range-all" autocomplete="off" checked>
+                  <label class="btn btn-outline-dark px-3" for="range-all">ALL</label>
+                  <input type="radio" class="btn-check" name="range-mode" id="range-72h" autocomplete="off">
+                  <label class="btn btn-outline-dark px-3" for="range-72h">72H</label>
+                </div>
+              </div>
             </div>
           </div>
           <div class="panel-body">
             <div id="index-chart" class="index-chart"></div>
-            <div class="chart-meta d-flex flex-wrap justify-content-between align-items-center mt-3 text-muted small">
+            <div id="chart-meta" class="chart-meta d-flex flex-wrap justify-content-between align-items-center mt-3 text-muted small">
               <div id="chart-updated">数据加载中…</div>
-              <div class="text-uppercase fw-semibold">All · 24h · 7d</div>
+              <div class="text-uppercase fw-semibold">
+                <span id="range-label">ALL</span> · 24h · 7d
+              </div>
             </div>
           </div>
         </div>
@@ -77,7 +90,7 @@
     <div class="container text-center text-white-50 small">
       <div>© 2014–<span id="current-year"></span> huangchaosuper</div>
       <div class="mt-2">
-        Powered by Bootstrap&nbsp;5 &amp; Apache ECharts | Hosted on GitHub Pages
+        Powered by CodeX &amp; Bootstrap&nbsp;5 &amp; Apache ECharts | Hosted on GitHub Pages
       </div>
     </div>
   </footer>

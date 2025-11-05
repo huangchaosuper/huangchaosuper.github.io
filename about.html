@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="了解 HC QUANT项目的背景与联系方式">
+  <link rel="shortcut icon" href="./images/favicon.ico">
+  <title>关于 | HC QUANT</title>
+  <link rel="stylesheet" href="./assets/bootstrap/css/bootstrap.min.css">
+  <link rel="stylesheet" href="./stylesheets/main.css">
+</head>
+<body class="bg-subtle">
+  <header class="app-header fixed-top shadow-sm">
+    <nav class="navbar navbar-expand-lg border-bottom border-black border-opacity-10">
+      <div class="container-fluid px-4">
+        <a class="navbar-brand d-flex align-items-center gap-2 fw-bold text-uppercase tracking-wide" href="./index.html">
+          <img src="./images/logo.png" alt="Logo" width="36" height="36" class="rounded-circle">
+          HC QUANT
+        </a>
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#primary-nav" aria-controls="primary-nav" aria-expanded="false" aria-label="切换导航">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="primary-nav">
+          <ul class="navbar-nav ms-auto text-uppercase small fw-semibold align-items-lg-center gap-lg-4">
+            <li class="nav-item"><a class="nav-link" href="./index.html">Home</a></li>
+            <li class="nav-item d-none d-lg-inline">|</li>
+            <li class="nav-item"><a class="nav-link" href="http://aimeta.website" target="_blank" rel="noopener">AIMETA</a></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <main class="app-main">
+    <section class="py-5">
+      <div class="container">
+        <div class="row g-5 align-items-center">
+          <div class="col-lg-6">
+            <h1 class="display-6 fw-bold text-primary-emphasis mb-4">关于 HC QUANT</h1>
+            <p class="lead text-secondary mb-4">
+              HC QUANT聚焦加密市场指数的跟踪、量化策略验证与可视化呈现。我们希望通过透明的数据和清晰的图表，帮助更多朋友理解市场节奏。
+            </p>
+            <div class="card shadow-sm border-0">
+              <div class="card-body">
+                <h2 class="h6 text-uppercase text-muted fw-semibold mb-3">联系方式</h2>
+                <p class="mb-2">邮箱：<a href="mailto:huangchaosuper@live.cn">huangchaosuper@live.cn</a></p>
+                <p class="small text-secondary mb-0">扫码添加微信，备注“HC Quant” 方便快速沟通。</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-6">
+            <div class="text-center">
+              <img src="./images/WXQCODE.jpg" class="img-fluid rounded-4 shadow" alt="WeChat 联系二维码">
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer py-4">
+    <div class="container text-center text-white-50 small">
+      <div>© 2014–<span id="current-year"></span> huangchaosuper</div>
+      <div class="mt-2">
+        Powered by Bootstrap&nbsp;5 &amp; Apache ECharts | Hosted on GitHub Pages
+      </div>
+    </div>
+  </footer>
+
+  <script src="./assets/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const yearEl = document.getElementById('current-year');
+      if (yearEl) {
+        yearEl.textContent = new Date().getFullYear();
+      }
+    });
+  </script>
+</body>
+</html>
