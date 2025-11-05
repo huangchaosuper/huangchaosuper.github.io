@@ -1,1 +1,89 @@
-this is new page
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="keywords" content="加密货币,指数,CMC20,CMC100,行情,数据可视化">
+  <meta name="description" content="实时跟踪主流加密指数与自定义组合表现">
+  <meta name="author" content="huangchaosuper@live.cn">
+  <link rel="shortcut icon" href="./images/favicon.ico">
+  <title>HC QUANT 2025</title>
+  <link rel="stylesheet" href="./assets/bootstrap/css/bootstrap.min.css">
+  <link rel="stylesheet" href="./stylesheets/main.css">
+</head>
+<body class="bg-subtle">
+  <header class="app-header fixed-top shadow-sm">
+    <nav class="navbar navbar-expand-lg border-bottom border-black border-opacity-10">
+      <div class="container-fluid px-4">
+        <a class="navbar-brand d-flex align-items-center gap-2 fw-bold text-uppercase tracking-wide" href="#top">
+          <img src="./images/logo.png" alt="Logo" width="36" height="36" class="rounded-circle">
+          HC QUANT 2025
+        </a>
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#primary-nav" aria-controls="primary-nav" aria-expanded="false" aria-label="切换导航">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="primary-nav">
+          <ul class="navbar-nav ms-auto text-uppercase small fw-semibold align-items-lg-center gap-lg-4">
+            <li class="nav-item d-none d-lg-inline">|</li>
+            <li class="nav-item"><a class="nav-link" href="http://aimeta.website" target="_blank" rel="noopener">AIMETA</a></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+    <section class="ticker-strip border-bottom border-black border-opacity-10">
+      <div class="container-fluid px-4 py-2">
+        <div id="coin-ticker" class="coin-grid"></div>
+      </div>
+    </section>
+  </header>
+
+  <main id="top" class="app-main">
+    <section id="chart-panel" class="chart-panel">
+      <div class="container-fluid px-4">
+        <div class="panel-wrapper">
+          <div class="panel-header d-flex flex-wrap align-items-center justify-content-between">
+            <div>
+              <div class="panel-title text-uppercase fw-bold small text-muted">Total Index Value</div>
+              <h1 class="h3 fw-bold mb-0 text-primary-emphasis">CMC20 · CMC100 · QUANT2025</h1>
+            </div>
+            <div class="btn-group btn-group-sm" role="group" aria-label="Value type">
+              <input type="radio" class="btn-check" name="value-mode" id="mode-absolute" autocomplete="off" checked>
+              <label class="btn btn-outline-dark px-3" for="mode-absolute">$</label>
+              <input type="radio" class="btn-check" name="value-mode" id="mode-percent" autocomplete="off">
+              <label class="btn btn-outline-dark px-3" for="mode-percent">%</label>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div id="index-chart" class="index-chart"></div>
+            <div class="chart-meta d-flex flex-wrap justify-content-between align-items-center mt-3 text-muted small">
+              <div id="chart-updated">数据加载中…</div>
+              <div class="text-uppercase fw-semibold">All · 24h · 7d</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section id="board" class="info-section">
+      <div class="container-fluid px-4">
+        <div class="info-card">
+          <h2 class="h6 text-uppercase text-muted fw-semibold mb-3">Index Highlights</h2>
+          <ul id="index-highlights" class="list-unstyled mb-0 small"></ul>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer py-4">
+    <div class="container text-center text-white-50 small">
+      <div>© 2014–<span id="current-year"></span> huangchaosuper</div>
+      <div class="mt-2">
+        Powered by Bootstrap&nbsp;5 &amp; Apache ECharts | Hosted on GitHub Pages
+      </div>
+    </div>
+  </footer>
+
+  <script src="./assets/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script src="./assets/echarts/echarts.min.js"></script>
+  <script src="./javascripts/main.js"></script>
+</body>
+</html>
