@@ -128,11 +128,19 @@ function renderTicker(coins, tickerEl) {
     return;
   }
 
-  const currencyFormatter = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    maximumFractionDigits: 2
-  });
+  const currencyFormatter = {
+    format: (value) => {
+      const str = value.toString();
+      const decimalPart = str.includes('.') ? str.split('.')[1] : '';
+      const digits = Math.min(decimalPart.length, 8); // 最多8位小数
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: digits,
+        maximumFractionDigits: digits
+      }).format(value);
+    }
+  };
 
   tickerEl.innerHTML = '';
   coins.forEach((coin) => {
