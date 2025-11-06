@@ -200,35 +200,35 @@ function parseCsv(input) {
         return;
       }
 
-      const timestampRaw = segments[segments.length - 1].trim();
-      const valueSegments = segments.slice(0, segments.length - 1);
-      if (valueSegments.length < 3 || !timestampRaw) {
+      const [timestampRaw = '', q2025Raw = '', cmc20Raw = '', cmc100Raw = '', g2025Raw = ''] = segments;
+      if (!timestampRaw.trim()) {
         return;
       }
 
-      const cmc20Value = parseFloat(normalizeNumberString(valueSegments[0]));
-      const cmc100Value = parseFloat(normalizeNumberString(valueSegments[1]));
-      const indexRaw = valueSegments.slice(2).join(',');
-      const parsedIndex = parseFloat(normalizeNumberString(indexRaw));
+      const q2025Value = parseFloat(normalizeNumberString(q2025Raw));
+      const cmc20Value = parseFloat(normalizeNumberString(cmc20Raw));
+      const cmc100Value = parseFloat(normalizeNumberString(cmc100Raw));
+      const g2025Candidate = parseFloat(normalizeNumberString(g2025Raw));
 
       const hasDirtyMetric = (value) => !Number.isFinite(value) || value < 0;
-      if (hasDirtyMetric(cmc20Value) || hasDirtyMetric(cmc100Value) || hasDirtyMetric(parsedIndex)) {
+      if ([q2025Value, cmc20Value, cmc100Value].some(hasDirtyMetric)) {
         return;
       }
 
-      const isoLike = timestampRaw.replace(' ', 'T');
-      const time = new Date(isoLike);
-      if (!(time instanceof Date) || Number.isNaN(time.valueOf())) {
+      const g2025Value = Number.isFinite(g2025Candidate) && g2025Candidate >= 0 ? g2025Candidate : null;
+
+      const time = new Date(timestampRaw.replace(' ', 'T'));
+      if (Number.isNaN(time.valueOf())) {
         return;
       }
 
-      const adjustedIndex = parsedIndex / 5;
       cleanEntries.push({
-        cmc20: cmc20Value,
-        cmc100: cmc100Value,
-        index: adjustedIndex,
         timestamp: timestampRaw,
-        time
+        time,
+        q2025: q2025Value,
+        g2025: g2025Value,
+        cmc20: cmc20Value,
+        cmc100: cmc100Value
       });
     });
 
@@ -241,26 +241,38 @@ function updateChart(state) {
     return;
   }
 
-  const colors = ['#4c6ef5', '#fa8c16', '#2fb344'];
-  const base = data[0] || rawData[0];
-
-  const series = [
+  const seriesConfig = [
+    {
+      key: 'q2025',
+      name: 'Q2025',
+      color: '#2fb344'
+    },
+    {
+      key: 'g2025',
+      name: 'G2025',
+      color: '#a855f7'
+    },
     {
       key: 'cmc20',
       name: 'CMC20',
-      color: colors[0]
+      color: '#4c6ef5'
     },
     {
       key: 'cmc100',
       name: 'CMC100',
-      color: colors[1]
-    },
-    {
-      key: 'index',
-      name: 'QUANT2025',
-      color: colors[2]
+      color: '#fa8c16'
     }
-  ].map((serie) => ({
+  ];
+
+  const baseValues = seriesConfig.reduce((acc, serie) => {
+    const baseEntry =
+      (Array.isArray(data) ? data : []).find((entry) => Number.isFinite(entry[serie.key])) ||
+      (Array.isArray(rawData) ? rawData : []).find((entry) => Number.isFinite(entry[serie.key]));
+    acc[serie.key] = baseEntry ? baseEntry[serie.key] : NaN;
+    return acc;
+  }, {});
+
+  const series = seriesConfig.map((serie) => ({
     name: serie.name,
     type: 'line',
     smooth: true,
@@ -274,16 +286,22 @@ function updateChart(state) {
     },
     data: data.map((entry) => {
       const raw = entry[serie.key];
+      if (!Number.isFinite(raw)) {
+        return [entry.time, null];
+      }
+      const baseValue = baseValues[serie.key];
       const value =
-        mode === 'percent'
-          ? normalizePercent(raw, base[serie.key])
-          : raw;
+        mode === 'percent' && Number.isFinite(baseValue)
+          ? normalizePercent(raw, baseValue)
+          : mode === 'percent'
+            ? null
+            : raw;
       return [entry.time, Number.isFinite(value) ? value : null];
     })
   }));
 
   const option = {
-    color: colors,
+    color: seriesConfig.map((serie) => serie.color),
     backgroundColor: 'transparent',
     animation: true,
     tooltip: {
@@ -359,7 +377,6 @@ function updateHighlights(state, highlightsEl, updatedEl, rangeLabelEl) {
     return;
   }
 
-  const first = data[0];
   const last = data[data.length - 1];
 
   const formatter = new Intl.DateTimeFormat('zh-CN', {
@@ -406,12 +423,27 @@ function updateHighlights(state, highlightsEl, updatedEl, rangeLabelEl) {
     `;
   };
 
-  highlightsEl.innerHTML = [
-    makeListItem('CMC20', last.cmc20, first.cmc20),
-    makeListItem('CMC100', last.cmc100, first.cmc100),
-    makeListItem('QUANT2025', last.index, first.index),
-    `<li class="pt-3 small text-muted">数据点数量：${data.length}</li>`
-  ].join('');
+  const metrics = [
+    { key: 'q2025', label: 'Q2025' },
+    { key: 'g2025', label: 'G2025' },
+    { key: 'cmc20', label: 'CMC20' },
+    { key: 'cmc100', label: 'CMC100' }
+  ];
+
+  const reversedData = [...data].reverse();
+  const items = metrics
+    .map(({ key, label }) => {
+      const firstValid = data.find((entry) => Number.isFinite(entry[key]));
+      const lastValid = reversedData.find((entry) => Number.isFinite(entry[key]));
+      if (!firstValid || !lastValid) {
+        return '';
+      }
+      return makeListItem(label, lastValid[key], firstValid[key]);
+    })
+    .filter(Boolean);
+
+  items.push(`<li class="pt-3 small text-muted">数据点数量：${data.length}</li>`);
+  highlightsEl.innerHTML = items.join('');
 }
 
 function normalizePercent(value, base) {
