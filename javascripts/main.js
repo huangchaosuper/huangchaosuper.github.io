@@ -187,27 +187,52 @@ function parseMarketCsv(input) {
 }
 
 function parseCsv(input) {
-  return input
+  const cleanEntries = [];
+
+  input
     .trim()
     .split(/\r?\n/)
     .slice(1)
     .filter(Boolean)
-    .map((line) => {
-      const [cmc20, cmc100, indexValue, timestamp] = line.split(',');
-      const isoLike = timestamp.replace(' ', 'T');
-      const cmc20Value = parseFloat(normalizeNumberString(cmc20));
-      const cmc100Value = parseFloat(normalizeNumberString(cmc100));
-      const parsedIndex = parseFloat(normalizeNumberString(indexValue));
-      const adjustedIndex = Number.isFinite(parsedIndex) ? parsedIndex / 5 : parsedIndex;
-      return {
+    .forEach((line) => {
+      const segments = line.split(',');
+      if (segments.length < 4) {
+        return;
+      }
+
+      const timestampRaw = segments[segments.length - 1].trim();
+      const valueSegments = segments.slice(0, segments.length - 1);
+      if (valueSegments.length < 3 || !timestampRaw) {
+        return;
+      }
+
+      const cmc20Value = parseFloat(normalizeNumberString(valueSegments[0]));
+      const cmc100Value = parseFloat(normalizeNumberString(valueSegments[1]));
+      const indexRaw = valueSegments.slice(2).join(',');
+      const parsedIndex = parseFloat(normalizeNumberString(indexRaw));
+
+      const hasDirtyMetric = (value) => !Number.isFinite(value) || value < 0;
+      if (hasDirtyMetric(cmc20Value) || hasDirtyMetric(cmc100Value) || hasDirtyMetric(parsedIndex)) {
+        return;
+      }
+
+      const isoLike = timestampRaw.replace(' ', 'T');
+      const time = new Date(isoLike);
+      if (!(time instanceof Date) || Number.isNaN(time.valueOf())) {
+        return;
+      }
+
+      const adjustedIndex = parsedIndex / 5;
+      cleanEntries.push({
         cmc20: cmc20Value,
         cmc100: cmc100Value,
         index: adjustedIndex,
-        timestamp,
-        time: new Date(isoLike)
-      };
-    })
-    .filter((entry) => Number.isFinite(entry.cmc20) && Number.isFinite(entry.cmc100) && Number.isFinite(entry.index) && entry.time instanceof Date && !Number.isNaN(entry.time.valueOf()));
+        timestamp: timestampRaw,
+        time
+      });
+    });
+
+  return cleanEntries;
 }
 
 function updateChart(state) {
