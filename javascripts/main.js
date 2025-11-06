@@ -200,7 +200,7 @@ function parseCsv(input) {
         return;
       }
 
-      const [timestampRaw = '', q2025Raw = '', cmc20Raw = '', cmc100Raw = '', g2025Raw = ''] = segments;
+      const [timestampRaw = '', q2025Raw = '', cmc20Raw = '', cmc100Raw = '', g2025Raw = '', b2025Raw = ''] = segments;
       if (!timestampRaw.trim()) {
         return;
       }
@@ -209,6 +209,7 @@ function parseCsv(input) {
       const cmc20Value = parseFloat(normalizeNumberString(cmc20Raw));
       const cmc100Value = parseFloat(normalizeNumberString(cmc100Raw));
       const g2025Candidate = parseFloat(normalizeNumberString(g2025Raw));
+      const b2025Candidate = parseFloat(normalizeNumberString(b2025Raw));
 
       const hasDirtyMetric = (value) => !Number.isFinite(value) || value < 0;
       if ([q2025Value, cmc20Value, cmc100Value].some(hasDirtyMetric)) {
@@ -216,6 +217,7 @@ function parseCsv(input) {
       }
 
       const g2025Value = Number.isFinite(g2025Candidate) && g2025Candidate >= 0 ? g2025Candidate : null;
+      const b2025Value = Number.isFinite(b2025Candidate) && b2025Candidate >= 0 ? b2025Candidate : null;
 
       const time = new Date(timestampRaw.replace(' ', 'T'));
       if (Number.isNaN(time.valueOf())) {
@@ -227,6 +229,7 @@ function parseCsv(input) {
         time,
         q2025: q2025Value,
         g2025: g2025Value,
+        b2025: b2025Value,
         cmc20: cmc20Value,
         cmc100: cmc100Value
       });
@@ -251,6 +254,11 @@ function updateChart(state) {
       key: 'g2025',
       name: 'G2025',
       color: '#a855f7'
+    },
+    {
+      key: 'b2025',
+      name: 'B2025',
+      color: '#0ea5e9'
     },
     {
       key: 'cmc20',
@@ -426,6 +434,7 @@ function updateHighlights(state, highlightsEl, updatedEl, rangeLabelEl) {
   const metrics = [
     { key: 'q2025', label: 'Q2025' },
     { key: 'g2025', label: 'G2025' },
+    { key: 'b2025', label: 'B2025' },
     { key: 'cmc20', label: 'CMC20' },
     { key: 'cmc100', label: 'CMC100' }
   ];
