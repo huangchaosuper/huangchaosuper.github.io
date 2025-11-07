@@ -43,10 +43,21 @@ async function loadMarketDataFromSupabase() {
 }
 
 // 从 Supabase 读取 quant_index，返回和原 parseCsv 一样的结构
-async function loadIndexDataFromSupabase() {
-  const rows = await supabaseFetch(
-    'quant_index?select=ts,q2025,cmc20,cmc100,g2025,b2025&order=ts'
-  );
+async function loadIndexDataFromSupabase(range = 'all') {
+  const RANGE_TO_HOURS = {
+    '24h': 24,
+    '72h': 72
+  };
+
+  let query =
+    'quant_index?select=ts,q2025,cmc20,cmc100,g2025,b2025&order=ts';
+  const hours = RANGE_TO_HOURS[range];
+  if (hours) {
+    const cutoffIso = new Date(Date.now() - hours * 60 * 60 * 1000).toISOString();
+    query += `&ts=gte.${encodeURIComponent(cutoffIso)}`;
+  }
+
+  const rows = await supabaseFetch(query);
 
   const cleanEntries = [];
 
@@ -93,6 +104,12 @@ async function loadIndexDataFromSupabase() {
   return cleanEntries;
 }
 
+const RANGE_LABELS = {
+  all: 'ALL',
+  '72h': '72H',
+  '24h': '24H'
+};
+
 document.addEventListener('DOMContentLoaded', () => {
   const yearEl = document.getElementById('current-year');
   if (yearEl) {
@@ -107,6 +124,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const absoluteToggle = document.getElementById('mode-absolute');
   const rangeAllToggle = document.getElementById('range-all');
   const range72hToggle = document.getElementById('range-72h');
+  const range24hToggle = document.getElementById('range-24h');
   const chartContainer = document.getElementById('index-chart');
   const tickerStrip = document.querySelector('.ticker-strip');
   const tickerToggleBtn = document.getElementById('ticker-toggle');
@@ -224,69 +242,120 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-  // ===== index：改为从 Supabase 读取 =====
-  loadIndexDataFromSupabase()
-    .then((parsed) => {
-      if (!parsed.length) {
-        throw new Error('指数数据为空');
-      }
-      const chart = echarts.init(chartContainer, null, { renderer: 'canvas' });
-      const state = {
-        mode: 'absolute',
-        range: 'all',
-        rawData: parsed,
-        data: filterDataByRange(parsed, 'all'),
-        chart
-      };
+  // ===== index：按范围从 Supabase 读取 =====
+  const chart = echarts.init(chartContainer, null, { renderer: 'canvas' });
+  const state = {
+    mode: 'absolute',
+    range: '24h',
+    rawData: [],
+    rawDataByRange: {},
+    data: [],
+    chart
+  };
 
+  const renderState = () => {
+    if (!state.data.length) {
+      return;
+    }
+    updateChart(state);
+    updateHighlights(state, highlightsEl, updatedEl, rangeLabelEl);
+  };
+
+  const setRangeLabel = (range) => {
+    if (rangeLabelEl) {
+      rangeLabelEl.textContent = RANGE_LABELS[range] || 'ALL';
+    }
+  };
+
+  let activeRangeRequestId = 0;
+
+  const loadRangeData = (range) => {
+    const cached = state.rawDataByRange[range];
+    if (Array.isArray(cached) && cached.length) {
+      state.rawData = cached;
+      state.data = filterDataByRange(cached, range);
+      renderState();
+      return;
+    }
+
+    activeRangeRequestId += 1;
+    const requestId = activeRangeRequestId;
+
+    if (updatedEl) {
+      updatedEl.textContent = '数据加载中…';
+    }
+
+    loadIndexDataFromSupabase(range)
+      .then((parsed) => {
+        if (!parsed.length) {
+          throw new Error('指数数据为空');
+        }
+        state.rawDataByRange[range] = parsed;
+        if (requestId !== activeRangeRequestId || state.range !== range) {
+          return;
+        }
+        state.rawData = parsed;
+        state.data = filterDataByRange(parsed, range);
+        renderState();
+      })
+      .catch((error) => {
+        console.error('加载 Supabase quant_index 失败:', error);
+        if (requestId !== activeRangeRequestId || state.range !== range) {
+          return;
+        }
+        if (updatedEl) {
+          updatedEl.textContent = `加载失败：${error.message}`;
+        }
+        if (rangeLabelEl) {
+          rangeLabelEl.textContent = '--';
+        }
+      });
+  };
+
+  const activateRange = (range) => {
+    state.range = range;
+    setRangeLabel(range);
+    loadRangeData(range);
+  };
+
+  window.addEventListener('resize', () => {
+    chart.resize();
+  });
+
+  absoluteToggle?.addEventListener('change', () => {
+    if (absoluteToggle.checked) {
+      state.mode = 'absolute';
       updateChart(state);
-      updateHighlights(state, highlightsEl, updatedEl, rangeLabelEl);
+    }
+  });
 
-      window.addEventListener('resize', () => {
-        chart.resize();
-      });
+  percentToggle?.addEventListener('change', () => {
+    if (percentToggle.checked) {
+      state.mode = 'percent';
+      updateChart(state);
+    }
+  });
 
-      absoluteToggle?.addEventListener('change', () => {
-        if (absoluteToggle.checked) {
-          state.mode = 'absolute';
-          updateChart(state);
-        }
-      });
+  rangeAllToggle?.addEventListener('change', () => {
+    if (rangeAllToggle.checked) {
+      activateRange('all');
+    }
+  });
 
-      percentToggle?.addEventListener('change', () => {
-        if (percentToggle.checked) {
-          state.mode = 'percent';
-          updateChart(state);
-        }
-      });
+  range72hToggle?.addEventListener('change', () => {
+    if (range72hToggle.checked) {
+      activateRange('72h');
+    }
+  });
 
-      rangeAllToggle?.addEventListener('change', () => {
-        if (rangeAllToggle.checked) {
-          state.range = 'all';
-          state.data = filterDataByRange(state.rawData, state.range);
-          updateChart(state);
-          updateHighlights(state, highlightsEl, updatedEl, rangeLabelEl);
-        }
-      });
+  range24hToggle?.addEventListener('change', () => {
+    if (range24hToggle.checked) {
+      activateRange('24h');
+    }
+  });
 
-      range72hToggle?.addEventListener('change', () => {
-        if (range72hToggle.checked) {
-          state.range = '72h';
-          state.data = filterDataByRange(state.rawData, state.range);
-          updateChart(state);
-          updateHighlights(state, highlightsEl, updatedEl, rangeLabelEl);
-        }
-      });
-    })
-    .catch((error) => {
-      console.error('加载 Supabase quant_index 失败:', error);
-      if (updatedEl) {
-        updatedEl.textContent = `加载失败：${error.message}`;
-      }
-      if (rangeLabelEl) {
-        rangeLabelEl.textContent = '--';
-      }
-    });
+  setRangeLabel(state.range);
+  activateRange(state.range);
 });
 
 const COIN_NAME_FALLBACKS = {
@@ -601,7 +670,7 @@ function updateHighlights(state, highlightsEl, updatedEl, rangeLabelEl) {
   }
 
   if (rangeLabelEl) {
-    rangeLabelEl.textContent = range === '72h' ? '72H' : 'ALL';
+    rangeLabelEl.textContent = RANGE_LABELS[range] || 'ALL';
   }
 
   if (!highlightsEl) {
@@ -666,7 +735,17 @@ function normalizePercent(value, base) {
 }
 
 function filterDataByRange(data, range) {
-  if (range !== '72h' || !Array.isArray(data) || !data.length) {
+  if (!Array.isArray(data) || !data.length) {
+    return data;
+  }
+
+  const RANGE_IN_HOURS = {
+    '72h': 72,
+    '24h': 24
+  };
+
+  const hours = RANGE_IN_HOURS[range];
+  if (!hours) {
     return data;
   }
 
@@ -675,7 +754,7 @@ function filterDataByRange(data, range) {
     return data;
   }
 
-  const cutoff = latest.time.getTime() - 72 * 60 * 60 * 1000;
+  const cutoff = latest.time.getTime() - hours * 60 * 60 * 1000;
   return data.filter(
     (item) => item.time instanceof Date && item.time.getTime() >= cutoff
   );
