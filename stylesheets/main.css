@@ -54,6 +54,11 @@ body {
   background: linear-gradient(90deg, rgba(248, 249, 252, 0.8), rgba(244, 239, 233, 0.8));
 }
 
+.ticker-toggle-btn {
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
 .coin-grid {
   display: flex;
   gap: 1rem;
@@ -112,6 +117,83 @@ body {
   .coin-grid {
     overflow: visible;
     flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 991.98px) {
+  .ticker-strip {
+    position: sticky;
+    top: 0;
+    z-index: 1030;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+    border-bottom-color: transparent !important;
+  }
+
+  .ticker-strip.is-expanded {
+    max-height: 28rem;
+    box-shadow: 0 1.5rem 2.5rem -1.25rem rgba(15, 23, 42, 0.45);
+  }
+
+  .ticker-strip .container-fluid {
+    transition: padding 0.2s ease;
+  }
+
+  .ticker-strip:not(.is-expanded) .container-fluid {
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+
+  .coin-grid {
+    flex-wrap: wrap;
+    overflow: visible;
+    gap: 0.75rem;
+  }
+
+  .coin-card {
+    flex: 1 1 calc(50% - 0.75rem);
+    min-width: 0;
+    padding: 0.6rem 0.75rem;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .coin-card {
+    flex-basis: 100%;
+  }
+}
+
+@media (orientation: landscape) and (max-width: 991.98px) {
+  .ticker-strip.is-expanded {
+    max-height: 18rem;
+  }
+
+  .ticker-strip {
+    transition: max-height 0.3s ease, opacity 0.2s ease;
+  }
+
+  .ticker-strip.ticker-hidden {
+    max-height: 0 !important;
+    opacity: 0;
+    border-bottom-color: transparent !important;
+  }
+
+  .ticker-strip.ticker-hidden .container-fluid {
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+
+  .coin-card {
+    padding: 0.5rem 0.6rem;
+  }
+
+  .coin-price {
+    font-size: 1rem;
+  }
+
+  .coin-change {
+    font-size: 0.75rem;
   }
 }
 

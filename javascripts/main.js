@@ -13,6 +13,99 @@ document.addEventListener('DOMContentLoaded', () => {
   const rangeAllToggle = document.getElementById('range-all');
   const range72hToggle = document.getElementById('range-72h');
   const chartContainer = document.getElementById('index-chart');
+  const tickerStrip = document.querySelector('.ticker-strip');
+  const tickerToggleBtn = document.getElementById('ticker-toggle');
+  const mobileTickerMedia = window.matchMedia('(max-width: 991.98px)');
+  const landscapeTickerMedia = window.matchMedia('(orientation: landscape) and (max-width: 991.98px)');
+  let lastScrollY = window.scrollY;
+
+  const resetTickerToggle = () => {
+    if (!tickerToggleBtn) {
+      return;
+    }
+    tickerToggleBtn.setAttribute('aria-expanded', 'false');
+    tickerToggleBtn.textContent = '行情';
+  };
+
+  const handleTickerScroll = () => {
+    if (!tickerStrip) {
+      return;
+    }
+    if (!landscapeTickerMedia.matches) {
+      tickerStrip.classList.remove('ticker-hidden');
+      lastScrollY = window.scrollY;
+      return;
+    }
+    const currentY = window.scrollY;
+    const nearTop = currentY <= 8;
+    if (nearTop) {
+      tickerStrip.classList.remove('ticker-hidden');
+      lastScrollY = currentY;
+      return;
+    }
+    const scrollingDown = currentY > lastScrollY + 4;
+    const scrollingUp = currentY < lastScrollY - 4;
+    if (scrollingDown) {
+      tickerStrip.classList.add('ticker-hidden');
+    } else if (scrollingUp) {
+      tickerStrip.classList.remove('ticker-hidden');
+    }
+    lastScrollY = currentY;
+  };
+
+  tickerToggleBtn?.addEventListener('click', () => {
+    if (!tickerStrip) {
+      return;
+    }
+    const expanded = tickerStrip.classList.toggle('is-expanded');
+    if (expanded) {
+      tickerStrip.classList.remove('ticker-hidden');
+    } else {
+      handleTickerScroll();
+    }
+    tickerToggleBtn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+    tickerToggleBtn.textContent = expanded ? '收起行情' : '行情';
+  });
+
+  const handleTickerMediaChange = (event) => {
+    if (!tickerStrip) {
+      return;
+    }
+    if (!event.matches) {
+      tickerStrip.classList.remove('is-expanded');
+      resetTickerToggle();
+    } else {
+      tickerStrip.classList.remove('is-expanded');
+      resetTickerToggle();
+    }
+    tickerStrip.classList.remove('ticker-hidden');
+    lastScrollY = window.scrollY;
+  };
+
+  if (mobileTickerMedia.addEventListener) {
+    mobileTickerMedia.addEventListener('change', handleTickerMediaChange);
+  } else if (mobileTickerMedia.addListener) {
+    mobileTickerMedia.addListener(handleTickerMediaChange);
+  }
+
+  if (landscapeTickerMedia.addEventListener) {
+    landscapeTickerMedia.addEventListener('change', () => {
+      tickerStrip?.classList.remove('ticker-hidden');
+      lastScrollY = window.scrollY;
+      handleTickerScroll();
+    });
+  } else if (landscapeTickerMedia.addListener) {
+    landscapeTickerMedia.addListener(() => {
+      tickerStrip?.classList.remove('ticker-hidden');
+      lastScrollY = window.scrollY;
+      handleTickerScroll();
+    });
+  }
+
+  window.addEventListener('scroll', handleTickerScroll, { passive: true });
+
+  resetTickerToggle();
+  handleTickerScroll();
 
   if (!chartContainer || typeof echarts === 'undefined') {
     console.warn('ECharts not available, chart will not render.');
