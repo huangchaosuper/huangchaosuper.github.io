@@ -1,3 +1,98 @@
+// ===== Supabase 配置 =====
+const SUPABASE_URL = 'https://mfmwgnolrhulmbkuftdh.supabase.co';
+const SUPABASE_ANON_KEY =
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mbXdnbm9scmh1bG1ia3VmdGRoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0OTIyMzcsImV4cCI6MjA3ODA2ODIzN30.Nb2n0_8mHFIBZeDjnKuoe2Lvgw0B3O5chdRsZgTVets';
+
+async function supabaseFetch(path) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    headers: {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+    }
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Supabase ${res.status}: ${text}`);
+  }
+  return res.json();
+}
+
+// 从 Supabase 读取 market_data，返回 [{symbol,name,price,change}, ...]
+async function loadMarketDataFromSupabase() {
+  const rows = await supabaseFetch(
+    'market_data?select=ticker,price,price_percentage_change_24h'
+  );
+
+  return rows
+    .map((r) => {
+      const price = parseFloat(normalizeNumberString(r.price));
+      const change = parseFloat(
+        normalizeNumberString(r.price_percentage_change_24h)
+      );
+      if (!r.ticker || Number.isNaN(price) || Number.isNaN(change)) {
+        return null;
+      }
+      return {
+        symbol: r.ticker,
+        name: COIN_NAME_FALLBACKS[r.ticker] || r.ticker,
+        price,
+        change
+      };
+    })
+    .filter(Boolean);
+}
+
+// 从 Supabase 读取 quant_index，返回和原 parseCsv 一样的结构
+async function loadIndexDataFromSupabase() {
+  const rows = await supabaseFetch(
+    'quant_index?select=ts,q2025,cmc20,cmc100,g2025,b2025&order=ts'
+  );
+
+  const cleanEntries = [];
+
+  rows.forEach((r) => {
+    const timestampRaw = r.ts;
+    if (!timestampRaw) return;
+
+    const q2025Value = parseFloat(normalizeNumberString(r.q2025));
+    const cmc20Value = parseFloat(normalizeNumberString(r.cmc20));
+    const cmc100Value = parseFloat(normalizeNumberString(r.cmc100));
+    const g2025Candidate = parseFloat(normalizeNumberString(r.g2025));
+    const b2025Candidate = parseFloat(normalizeNumberString(r.b2025));
+
+    const hasDirtyMetric = (value) => !Number.isFinite(value) || value < 0;
+    if ([q2025Value, cmc20Value, cmc100Value].some(hasDirtyMetric)) {
+      return;
+    }
+
+    const g2025Value =
+      Number.isFinite(g2025Candidate) && g2025Candidate >= 0
+        ? g2025Candidate
+        : null;
+    const b2025Value =
+      Number.isFinite(b2025Candidate) && b2025Candidate >= 0
+        ? b2025Candidate
+        : null;
+
+    const time = new Date(timestampRaw);
+    if (Number.isNaN(time.valueOf())) {
+      return;
+    }
+
+    cleanEntries.push({
+      timestamp: timestampRaw,
+      time,
+      q2025: q2025Value,
+      g2025: g2025Value,
+      b2025: b2025Value,
+      cmc20: cmc20Value,
+      cmc100: cmc100Value
+    });
+  });
+
+  return cleanEntries;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   const yearEl = document.getElementById('current-year');
   if (yearEl) {
@@ -16,7 +111,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const tickerStrip = document.querySelector('.ticker-strip');
   const tickerToggleBtn = document.getElementById('ticker-toggle');
   const mobileTickerMedia = window.matchMedia('(max-width: 991.98px)');
-  const landscapeTickerMedia = window.matchMedia('(orientation: landscape) and (max-width: 991.98px)');
+  const landscapeTickerMedia = window.matchMedia(
+    '(orientation: landscape) and (max-width: 991.98px)'
+  );
   let lastScrollY = window.scrollY;
 
   const resetTickerToggle = () => {
@@ -112,36 +209,24 @@ document.addEventListener('DOMContentLoaded', () => {
     return;
   }
 
-  fetch('./data/market.csv', { cache: 'no-store' })
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error(`无法加载币种数据（${response.status}）`);
-      }
-      return response.text();
-    })
-    .then((text) => {
-      const coins = parseMarketCsv(text);
+  // ===== market：改为从 Supabase 读取 =====
+  loadMarketDataFromSupabase()
+    .then((coins) => {
       if (!coins.length) {
         throw new Error('币种数据为空');
       }
       renderTicker(coins, tickerEl);
     })
     .catch((error) => {
-      console.error(error);
+      console.error('加载 Supabase market_data 失败:', error);
       if (tickerEl) {
         tickerEl.innerHTML = `<div class="text-danger small">${error.message}</div>`;
       }
     });
 
-  fetch('./data/index.csv', { cache: 'no-store' })
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error(`无法加载指数数据（${response.status}）`);
-      }
-      return response.text();
-    })
-    .then((text) => {
-      const parsed = parseCsv(text);
+  // ===== index：改为从 Supabase 读取 =====
+  loadIndexDataFromSupabase()
+    .then((parsed) => {
       if (!parsed.length) {
         throw new Error('指数数据为空');
       }
@@ -194,7 +279,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     })
     .catch((error) => {
-      console.error(error);
+      console.error('加载 Supabase quant_index 失败:', error);
       if (updatedEl) {
         updatedEl.textContent = `加载失败：${error.message}`;
       }
@@ -245,7 +330,9 @@ function renderTicker(coins, tickerEl) {
       <div class="coin-symbol">${coin.symbol}</div>
       <div class="coin-name text-muted">${coin.name}</div>
       <div class="coin-price fw-semibold">${currencyFormatter.format(coin.price)}</div>
-      <div class="coin-change ${changeClass}">${changePrefix}${coin.change.toFixed(2)}%</div>
+      <div class="coin-change ${changeClass}">${changePrefix}${coin.change.toFixed(
+        2
+      )}%</div>
     `;
     tickerEl.appendChild(card);
   });
@@ -263,7 +350,9 @@ function parseMarketCsv(input) {
         return null;
       }
       const symbol = segments[0].trim();
-      const change = parseFloat(normalizeNumberString(segments[segments.length - 1]));
+      const change = parseFloat(
+        normalizeNumberString(segments[segments.length - 1])
+      );
       const priceRaw = segments.slice(1, -1).join(',');
       const price = parseFloat(normalizeNumberString(priceRaw));
       if (!symbol || Number.isNaN(price) || Number.isNaN(change)) {
@@ -293,7 +382,14 @@ function parseCsv(input) {
         return;
       }
 
-      const [timestampRaw = '', q2025Raw = '', cmc20Raw = '', cmc100Raw = '', g2025Raw = '', b2025Raw = ''] = segments;
+      const [
+        timestampRaw = '',
+        q2025Raw = '',
+        cmc20Raw = '',
+        cmc100Raw = '',
+        g2025Raw = '',
+        b2025Raw = ''
+      ] = segments;
       if (!timestampRaw.trim()) {
         return;
       }
@@ -309,8 +405,14 @@ function parseCsv(input) {
         return;
       }
 
-      const g2025Value = Number.isFinite(g2025Candidate) && g2025Candidate >= 0 ? g2025Candidate : null;
-      const b2025Value = Number.isFinite(b2025Candidate) && b2025Candidate >= 0 ? b2025Candidate : null;
+      const g2025Value =
+        Number.isFinite(g2025Candidate) && g2025Candidate >= 0
+          ? g2025Candidate
+          : null;
+      const b2025Value =
+        Number.isFinite(b2025Candidate) && b2025Candidate >= 0
+          ? b2025Candidate
+          : null;
 
       const time = new Date(timestampRaw.replace(' ', 'T'));
       if (Number.isNaN(time.valueOf())) {
@@ -367,8 +469,12 @@ function updateChart(state) {
 
   const baseValues = seriesConfig.reduce((acc, serie) => {
     const baseEntry =
-      (Array.isArray(data) ? data : []).find((entry) => Number.isFinite(entry[serie.key])) ||
-      (Array.isArray(rawData) ? rawData : []).find((entry) => Number.isFinite(entry[serie.key]));
+      (Array.isArray(data) ? data : []).find((entry) =>
+        Number.isFinite(entry[serie.key])
+      ) ||
+      (Array.isArray(rawData) ? rawData : []).find((entry) =>
+        Number.isFinite(entry[serie.key])
+      );
     acc[serie.key] = baseEntry ? baseEntry[serie.key] : NaN;
     return acc;
   }, {});
@@ -518,7 +624,11 @@ function updateHighlights(state, highlightsEl, updatedEl, rangeLabelEl) {
         <span class="fw-semibold text-uppercase">${label}</span>
         <span class="text-nowrap">
           <span class="me-3">${currency.format(finalValue)}</span>
-          <span class="badge rounded-pill bg-${direction === 'positive' ? 'success' : 'danger'} bg-opacity-10 text-${direction === 'positive' ? 'success' : 'danger'}">${sign}${pct.toFixed(2)}%</span>
+          <span class="badge rounded-pill bg-${
+            direction === 'positive' ? 'success' : 'danger'
+          } bg-opacity-10 text-${
+            direction === 'positive' ? 'success' : 'danger'
+          }">${sign}${pct.toFixed(2)}%</span>
         </span>
       </li>
     `;
@@ -566,7 +676,9 @@ function filterDataByRange(data, range) {
   }
 
   const cutoff = latest.time.getTime() - 72 * 60 * 60 * 1000;
-  return data.filter((item) => item.time instanceof Date && item.time.getTime() >= cutoff);
+  return data.filter(
+    (item) => item.time instanceof Date && item.time.getTime() >= cutoff
+  );
 }
 
 function formatValue(value, mode) {
@@ -610,8 +722,11 @@ function normalizeNumberString(raw) {
 
   // 4️⃣ 欧式千分位：1.234.567,89
   //    这里要求同时出现 '.' 和 ','，避免把 2.261 这种普通小数当成千分位
-  if (value.includes('.') && value.includes(',') &&
-      /^\d{1,3}(\.\d{3})+(,\d+)?$/.test(value)) {
+  if (
+    value.includes('.') &&
+    value.includes(',') &&
+    /^\d{1,3}(\.\d{3})+(,\d+)?$/.test(value)
+  ) {
     return value.replace(/\./g, '').replace(',', '.');
   }
 
