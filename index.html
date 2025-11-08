@@ -37,13 +37,13 @@
     <section id="chart-panel" class="chart-panel">
       <div class="container-fluid px-4">
         <div class="panel-wrapper">
-          <div class="panel-header d-flex flex-wrap align-items-center justify-content-between">
+          <div class="panel-header d-flex flex-wrap align-items-center justify-content-between gap-3">
             <div>
               <div class="panel-title text-uppercase fw-bold small text-muted">Multi-Index Overview</div>
               <h1 class="h3 fw-bold mb-0 text-primary-emphasis">CMC20 · CMC100 · Q2025 · G2025 · B2025</h1>
             </div>
             <div class="panel-actions d-flex flex-column align-items-end gap-2">
-              <div class="d-flex gap-2 flex-wrap justify-content-end">
+              <div class="d-flex gap-2 flex-wrap justify-content-end align-items-center">
                 <div class="btn-group btn-group-sm" role="group" aria-label="Value type">
                   <input type="radio" class="btn-check" name="value-mode" id="mode-absolute" autocomplete="off" checked>
                   <label class="btn btn-outline-dark px-3" for="mode-absolute">$</label>
@@ -58,16 +58,25 @@
                   <input type="radio" class="btn-check" name="range-mode" id="range-all" autocomplete="off">
                   <label class="btn btn-outline-dark px-3" for="range-all">ALL</label>
                 </div>
+                <button type="button" class="btn btn-sm btn-outline-primary" id="refresh-index">刷新指数</button>
               </div>
             </div>
           </div>
           <div class="panel-body">
-            <div id="index-chart" class="index-chart"></div>
-            <div id="chart-meta" class="chart-meta d-flex flex-wrap justify-content-between align-items-center mt-3 text-muted small">
-              <div id="chart-updated">数据加载中…</div>
-              <div class="text-uppercase fw-semibold">
-                <span id="range-label">24H</span> | 24h · 7d
+            <div class="index-panel-layout">
+              <div class="index-chart-block">
+                <div id="index-chart" class="index-chart"></div>
+                <div id="chart-meta" class="chart-meta d-flex flex-wrap justify-content-between align-items-center mt-3 text-muted small">
+                  <div id="chart-updated">数据加载中…</div>
+                  <div class="text-uppercase fw-semibold">
+                    <span id="range-label">24H</span> | 24h · 7d
+                  </div>
+                </div>
               </div>
+              <aside class="index-highlights-card" aria-labelledby="index-highlights-title">
+                <h2 id="index-highlights-title" class="h6 text-uppercase text-muted fw-semibold mb-3">Performance Highlights</h2>
+                <ul id="index-highlights" class="list-unstyled mb-0 small"></ul>
+              </aside>
             </div>
           </div>
         </div>
@@ -76,16 +85,11 @@
     <section id="market-panel" class="info-section">
       <div class="container-fluid px-4">
         <div class="info-card">
-          <h2 class="h6 text-uppercase text-muted fw-semibold mb-3">Market Ticker</h2>
+          <div class="d-flex justify-content-between align-items-center mb-3 gap-3 flex-wrap">
+            <h2 class="h6 text-uppercase text-muted fw-semibold mb-0">Market Ticker</h2>
+            <button type="button" class="btn btn-sm btn-outline-primary" id="refresh-market">刷新行情</button>
+          </div>
           <div id="coin-ticker" class="coin-grid"></div>
-        </div>
-      </div>
-    </section>
-    <section id="board" class="info-section">
-      <div class="container-fluid px-4">
-        <div class="info-card">
-          <h2 class="h6 text-uppercase text-muted fw-semibold mb-3">Performance Highlights</h2>
-          <ul id="index-highlights" class="list-unstyled mb-0 small"></ul>
         </div>
       </div>
     </section>

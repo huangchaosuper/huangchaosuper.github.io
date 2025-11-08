@@ -133,6 +133,12 @@ body {
     overflow: visible;
     flex-wrap: wrap;
   }
+
+  .coin-card {
+    flex: 1 1 calc(10% - 0.8rem);
+    max-width: calc(10% - 0.8rem);
+    min-width: 120px;
+  }
 }
 
 @media (max-width: 991.98px) {
@@ -238,6 +244,33 @@ body {
   padding: 1.5rem 1.75rem 1.75rem;
 }
 
+.index-panel-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.index-chart-block {
+  flex: 1 1 auto;
+}
+
+.index-highlights-card {
+  background: #f8fafc;
+  border: 1px solid rgba(33, 37, 41, 0.08);
+  border-radius: 0.75rem;
+  padding: 1.25rem 1.5rem;
+  min-width: 0;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+.index-highlights-card ul {
+  margin-bottom: 0;
+}
+
+.index-highlights-card li:last-child {
+  border-bottom: none;
+}
+
 .index-chart {
   width: 100%;
   height: 420px;
@@ -268,6 +301,30 @@ body {
 
 .info-card li:last-child {
   border-bottom: none;
+}
+
+@media (orientation: landscape) {
+  .index-panel-layout {
+    flex-direction: row;
+    align-items: stretch;
+  }
+
+  .index-highlights-card {
+    flex: 0 0 260px;
+    order: -1;
+    align-self: stretch;
+  }
+}
+
+@media (min-width: 992px) {
+  .index-panel-layout {
+    flex-direction: row;
+  }
+
+  .index-highlights-card {
+    flex: 0 0 320px;
+    order: -1;
+  }
 }
 
 .site-footer {

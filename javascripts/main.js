@@ -3,18 +3,45 @@ const SUPABASE_URL = 'https://mfmwgnolrhulmbkuftdh.supabase.co';
 const SUPABASE_ANON_KEY =
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mbXdnbm9scmh1bG1ia3VmdGRoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0OTIyMzcsImV4cCI6MjA3ODA2ODIzN30.Nb2n0_8mHFIBZeDjnKuoe2Lvgw0B3O5chdRsZgTVets';
 
-async function supabaseFetch(path) {
+async function supabaseFetch(path, fetchOptions = {}) {
+  const { headers: extraHeaders = {}, ...restOptions } = fetchOptions;
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
     headers: {
       apikey: SUPABASE_ANON_KEY,
-      Authorization: `Bearer ${SUPABASE_ANON_KEY}`
-    }
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+      ...extraHeaders
+    },
+    ...restOptions
   });
   if (!res.ok) {
     const text = await res.text();
     throw new Error(`Supabase ${res.status}: ${text}`);
   }
   return res.json();
+}
+
+async function supabaseFetchAllPages(baseQuery, pageSize = 1000) {
+  const results = [];
+  const connector = baseQuery.includes('?') ? '&' : '?';
+  const MAX_PAGES = 50;
+  let page = 0;
+
+  while (page < MAX_PAGES) {
+    const offset = page * pageSize;
+    const pagedQuery = `${baseQuery}${connector}limit=${pageSize}&offset=${offset}`;
+    const chunk = await supabaseFetch(pagedQuery);
+    results.push(...chunk);
+    if (chunk.length < pageSize) {
+      break;
+    }
+    page += 1;
+  }
+
+  if (page === MAX_PAGES) {
+    throw new Error('Supabase 返回数据超过分页上限，请缩小时间范围');
+  }
+
+  return results;
 }
 
 // 从 Supabase 读取 market_data，返回 [{symbol,name,price,change}, ...]
@@ -49,20 +76,22 @@ async function loadIndexDataFromSupabase(range = 'all') {
     '72h': 72
   };
 
-  let query =
+  const baseSelect =
     'quant_index?select=ts,q2025,cmc20,cmc100,g2025,b2025&order=ts';
   const hours = RANGE_TO_HOURS[range];
+  let rows;
   if (hours) {
     const cutoffIso = new Date(Date.now() - hours * 60 * 60 * 1000).toISOString();
-    query += `&ts=gte.${encodeURIComponent(cutoffIso)}`;
+    const query = `${baseSelect}&ts=gte.${encodeURIComponent(cutoffIso)}`;
+    rows = await supabaseFetch(query);
+  } else {
+    rows = await supabaseFetchAllPages(baseSelect);
   }
-
-  const rows = await supabaseFetch(query);
 
   const cleanEntries = [];
 
   rows.forEach((r) => {
-    const timestampRaw = r.ts;
+    const timestampRaw = r.ts || r.bucket_ts || r.ts_bucket || r.ts_hour;
     if (!timestampRaw) return;
 
     const q2025Value = parseFloat(normalizeNumberString(r.q2025));
@@ -101,7 +130,8 @@ async function loadIndexDataFromSupabase(range = 'all') {
     });
   });
 
-  return cleanEntries;
+  const normalized = range === 'all' ? bucketEntriesByHour(cleanEntries) : cleanEntries;
+  return normalized;
 }
 
 const RANGE_LABELS = {
@@ -117,6 +147,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   const tickerEl = document.getElementById('coin-ticker');
+  const marketRefreshBtn = document.getElementById('refresh-market');
   const highlightsEl = document.getElementById('index-highlights');
   const updatedEl = document.getElementById('chart-updated');
   const rangeLabelEl = document.getElementById('range-label');
@@ -127,25 +158,40 @@ document.addEventListener('DOMContentLoaded', () => {
   const range24hToggle = document.getElementById('range-24h');
   const chartContainer = document.getElementById('index-chart');
 
+  const refreshMarketData = () => {
+    if (tickerEl) {
+      tickerEl.innerHTML =
+        '<div class="text-muted small py-3">数据刷新中…</div>';
+    }
+    setButtonLoading(marketRefreshBtn, true);
+    return loadMarketDataFromSupabase()
+      .then((coins) => {
+        if (!coins.length) {
+          throw new Error('币种数据为空');
+        }
+        renderTicker(coins, tickerEl);
+      })
+      .catch((error) => {
+        console.error('加载 Supabase market_data 失败:', error);
+        if (tickerEl) {
+          tickerEl.innerHTML = `<div class="text-danger small">${error.message}</div>`;
+        }
+      })
+      .finally(() => {
+        setButtonLoading(marketRefreshBtn, false);
+      });
+  };
+
+  marketRefreshBtn?.addEventListener('click', () => {
+    refreshMarketData();
+  });
+
+  refreshMarketData();
+
   if (!chartContainer || typeof echarts === 'undefined') {
     console.warn('ECharts not available, chart will not render.');
     return;
   }
-
-  // ===== market：改为从 Supabase 读取 =====
-  loadMarketDataFromSupabase()
-    .then((coins) => {
-      if (!coins.length) {
-        throw new Error('币种数据为空');
-      }
-      renderTicker(coins, tickerEl);
-    })
-    .catch((error) => {
-      console.error('加载 Supabase market_data 失败:', error);
-      if (tickerEl) {
-        tickerEl.innerHTML = `<div class="text-danger small">${error.message}</div>`;
-      }
-    });
 
   // ===== index：按范围从 Supabase 读取 =====
   const chart = echarts.init(chartContainer, null, { renderer: 'canvas' });
@@ -174,13 +220,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let activeRangeRequestId = 0;
 
-  const loadRangeData = (range) => {
+  const loadRangeData = (range, { force = false } = {}) => {
     const cached = state.rawDataByRange[range];
-    if (Array.isArray(cached) && cached.length) {
+    if (!force && Array.isArray(cached) && cached.length) {
       state.rawData = cached;
       state.data = filterDataByRange(cached, range);
       renderState();
-      return;
+      return Promise.resolve();
     }
 
     activeRangeRequestId += 1;
@@ -190,7 +236,7 @@ document.addEventListener('DOMContentLoaded', () => {
       updatedEl.textContent = '数据加载中…';
     }
 
-    loadIndexDataFromSupabase(range)
+    return loadIndexDataFromSupabase(range)
       .then((parsed) => {
         if (!parsed.length) {
           throw new Error('指数数据为空');
@@ -259,6 +305,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  const indexRefreshBtn = document.getElementById('refresh-index');
+  indexRefreshBtn?.addEventListener('click', () => {
+    setButtonLoading(indexRefreshBtn, true);
+    loadRangeData(state.range, { force: true }).finally(() => {
+      setButtonLoading(indexRefreshBtn, false);
+    });
+  });
+
   setRangeLabel(state.range);
   activateRange(state.range);
 });
@@ -274,6 +328,22 @@ const COIN_NAME_FALLBACKS = {
   ATOM: 'Cosmos',
   AVAX: 'Avalanche'
 };
+
+function setButtonLoading(button, isLoading, loadingLabel = '刷新中…') {
+  if (!button) {
+    return;
+  }
+  if (!button.dataset.defaultLabel) {
+    button.dataset.defaultLabel = button.innerHTML;
+  }
+  if (isLoading) {
+    button.disabled = true;
+    button.innerHTML = loadingLabel;
+  } else {
+    button.disabled = false;
+    button.innerHTML = button.dataset.defaultLabel;
+  }
+}
 
 function renderTicker(coins, tickerEl) {
   if (!tickerEl) {
@@ -716,4 +786,66 @@ function normalizeNumberString(raw) {
 
   // 兜底
   return value;
+}
+
+function bucketEntriesByHour(entries) {
+  if (!Array.isArray(entries) || !entries.length) {
+    return entries || [];
+  }
+
+  const BUCKET_MS = 60 * 60 * 1000;
+  const aggregates = new Map();
+
+  entries.forEach((entry) => {
+    if (!(entry.time instanceof Date)) {
+      return;
+    }
+    const bucketTimestamp = Math.floor(entry.time.getTime() / BUCKET_MS) * BUCKET_MS;
+    const bucketKey = new Date(bucketTimestamp).toISOString();
+    if (!aggregates.has(bucketKey)) {
+      aggregates.set(bucketKey, {
+        time: new Date(bucketTimestamp),
+        timestamp: bucketKey,
+        metrics: {
+          q2025: { sum: 0, count: 0 },
+          g2025: { sum: 0, count: 0 },
+          b2025: { sum: 0, count: 0 },
+          cmc20: { sum: 0, count: 0 },
+          cmc100: { sum: 0, count: 0 }
+        }
+      });
+    }
+    const bucket = aggregates.get(bucketKey);
+    Object.keys(bucket.metrics).forEach((key) => {
+      const value = entry[key];
+      if (Number.isFinite(value)) {
+        bucket.metrics[key].sum += value;
+        bucket.metrics[key].count += 1;
+      }
+    });
+  });
+
+  const aggregateEntries = Array.from(aggregates.values())
+    .map((bucket) => {
+      const averaged = {};
+      Object.entries(bucket.metrics).forEach(([key, { sum, count }]) => {
+        averaged[key] = count ? sum / count : null;
+      });
+      return {
+        timestamp: bucket.timestamp,
+        time: bucket.time,
+        ...averaged
+      };
+    })
+    .filter((entry) =>
+      Object.values(entry).some(
+        (value) =>
+          value &&
+          typeof value === 'number' &&
+          Number.isFinite(value)
+      )
+    )
+    .sort((a, b) => a.time - b.time);
+
+  return aggregateEntries;
 }
