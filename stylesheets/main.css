@@ -135,8 +135,8 @@ body {
   }
 
   .coin-card {
-    flex: 1 1 calc(10% - 0.8rem);
-    max-width: calc(10% - 0.8rem);
+    flex: 1 1 calc(10% - 0.9rem);
+    max-width: calc(10% - 0.9rem);
     min-width: 120px;
   }
 }
