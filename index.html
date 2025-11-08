@@ -10,6 +10,7 @@
   <title>HC QUANT GROW</title>
   <link rel="stylesheet" href="./assets/bootstrap/css/bootstrap.min.css">
   <link rel="stylesheet" href="./stylesheets/main.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
 </head>
 <body class="bg-subtle">
   <header class="app-header fixed-top shadow-sm">
@@ -58,7 +59,9 @@
                   <input type="radio" class="btn-check" name="range-mode" id="range-all" autocomplete="off">
                   <label class="btn btn-outline-dark px-3" for="range-all">ALL</label>
                 </div>
-                <button type="button" class="btn btn-sm btn-outline-primary" id="refresh-index">刷新指数</button>
+                <button type="button" class="btn btn-sm btn-outline-dark px-3" id="refresh-index" title="refresh index">
+                  <i class="bi bi-arrow-clockwise"></i>
+                </button>
               </div>
             </div>
           </div>
@@ -87,7 +90,9 @@
         <div class="info-card">
           <div class="d-flex justify-content-between align-items-center mb-3 gap-3 flex-wrap">
             <h2 class="h6 text-uppercase text-muted fw-semibold mb-0">Market Ticker</h2>
-            <button type="button" class="btn btn-sm btn-outline-primary" id="refresh-market">刷新行情</button>
+            <button type="button" class="btn btn-sm btn-outline-dark px-3" id="refresh-market" title="refresh market">
+              <i class="bi bi-arrow-clockwise"></i>
+            </button>
           </div>
           <div id="coin-ticker" class="coin-grid"></div>
         </div>
