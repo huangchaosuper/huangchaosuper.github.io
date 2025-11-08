@@ -50,7 +50,7 @@ body {
 
 .app-main {
   padding-top: calc(var(--header-offset) + 0.5rem);
-  padding-bottom: 4rem;
+  padding-bottom: 0.5rem;
 }
 
 .navbar .nav-link {
