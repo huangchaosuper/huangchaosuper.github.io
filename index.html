@@ -40,7 +40,12 @@
         <div class="panel-wrapper">
           <div class="panel-header d-flex flex-wrap align-items-center justify-content-between gap-3">
             <div>
-              <div class="panel-title text-uppercase fw-bold small text-muted">Multi-Index Overview</div>
+              <div class="panel-title text-uppercase fw-bold small text-muted">
+                <span>Multi-Index Overview</span>
+                <button type="button" class="btn btn-link px-3" id="refresh-index" title="刷新指标">
+                  <i class="bi bi-arrow-clockwise"></i>
+                </button>
+              </div>
               <h1 class="h3 fw-bold mb-0 text-primary-emphasis">CMC20 · CMC100 · Q2025 · G2025 · B2025</h1>
             </div>
             <div class="panel-actions d-flex flex-column align-items-end gap-2">
@@ -59,9 +64,6 @@
                   <input type="radio" class="btn-check" name="range-mode" id="range-all" autocomplete="off">
                   <label class="btn btn-outline-dark px-3" for="range-all">ALL</label>
                 </div>
-                <button type="button" class="btn btn-sm btn-outline-dark px-3" id="refresh-index" title="refresh index">
-                  <i class="bi bi-arrow-clockwise"></i>
-                </button>
               </div>
             </div>
           </div>
@@ -89,10 +91,12 @@
       <div class="container-fluid px-4">
         <div class="info-card">
           <div class="d-flex justify-content-between align-items-center mb-3 gap-3 flex-wrap">
-            <h2 class="h6 text-uppercase text-muted fw-semibold mb-0">Market Ticker</h2>
-            <button type="button" class="btn btn-sm btn-outline-dark px-3" id="refresh-market" title="refresh market">
-              <i class="bi bi-arrow-clockwise"></i>
-            </button>
+            <h2 class="h6 text-uppercase text-muted fw-semibold mb-0">
+              <span>Market Ticker</span>
+              <button type="button" class="btn btn-link px-3" id="refresh-market" title="刷新行情">
+                <i class="bi bi-arrow-clockwise"></i>
+              </button>
+            </h2>
           </div>
           <div id="coin-ticker" class="coin-grid"></div>
         </div>
