@@ -255,6 +255,7 @@ function updateChart(state) {
     return;
   }
 
+  const categories = timeline.map((entry) => entry.timestamp);
   const baseValues = {};
   portfolios.forEach((name) => {
     const baseEntry = timeline.find((entry) =>
@@ -272,9 +273,12 @@ function updateChart(state) {
       valueFormatter: (value) => formatStockValue(value, mode)
     },
     xAxis: {
-      type: 'time',
+      type: 'category',
       boundaryGap: false,
-      axisLabel: { formatter: (value) => new Date(value).toLocaleString() }
+      data: categories,
+      axisLabel: {
+        formatter: (value) => formatAxisTick(value)
+      }
     },
     yAxis: {
       type: 'value',
@@ -291,12 +295,12 @@ function updateChart(state) {
       data: timeline.map((entry) => {
         const rawValue = entry.values[name];
         if (!Number.isFinite(rawValue)) {
-          return [entry.time, null];
+          return [entry.timestamp, null];
         }
         if (mode === 'percent') {
-          return [entry.time, normalizePercent(rawValue, baseValues[name])];
+          return [entry.timestamp, normalizePercent(rawValue, baseValues[name])];
         }
-        return [entry.time, rawValue];
+        return [entry.timestamp, rawValue];
       })
     }))
   };
@@ -474,4 +478,17 @@ function formatDateTime(date) {
     2,
     '0'
   )}:${String(date.getSeconds()).padStart(2, '0')}`;
+}
+
+function formatAxisTick(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.valueOf())) {
+    return value;
+  }
+  return `${String(date.getMonth() + 1).padStart(2, '0')}-${String(
+    date.getDate()
+  ).padStart(2, '0')} ${String(date.getHours()).padStart(
+    2,
+    '0'
+  )}:${String(date.getMinutes()).padStart(2, '0')}`;
 }
