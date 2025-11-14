@@ -88,6 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const highlightEl = document.getElementById('stock-highlights');
   const cardsEl = document.getElementById('stock-cards');
   const refreshBtn = document.getElementById('refresh-stock');
+  const portfolioTitleEl = document.getElementById('stock-portfolio-title');
 
   const absoluteToggle = document.getElementById('stock-mode-absolute');
   const percentToggle = document.getElementById('stock-mode-percent');
@@ -148,6 +149,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   const renderAll = () => {
+    updatePortfolioTitle(state.portfolios, portfolioTitleEl);
     if (!state.timeline.length) {
       return;
     }
@@ -236,9 +238,14 @@ function transformStockRows(rows) {
   const timeline = Array.from(timelineMap.values()).sort(
     (a, b) => a.time - b.time
   );
+  const sortedPortfolios = Array.from(portfolios).sort((a, b) => {
+    if (a === 'SSE' && b !== 'SSE') return -1;
+    if (b === 'SSE' && a !== 'SSE') return 1;
+    return a.localeCompare(b, 'en', { numeric: true });
+  });
   return {
     timeline,
-    portfolios: Array.from(portfolios).sort()
+    portfolios: sortedPortfolios
   };
 }
 
@@ -376,6 +383,18 @@ function updateCards(state, container) {
     })
     .filter(Boolean);
   container.innerHTML = cards.join('');
+}
+
+function updatePortfolioTitle(portfolios, titleEl) {
+  if (!titleEl) {
+    return;
+  }
+  const fallback = titleEl.dataset.defaultText || 'China Stock Portfolios';
+  if (!Array.isArray(portfolios) || !portfolios.length) {
+    titleEl.textContent = fallback;
+    return;
+  }
+  titleEl.textContent = portfolios.join(' · ');
 }
 
 function setButtonLoading(button, isLoading, loadingLabel = '刷新中…') {
