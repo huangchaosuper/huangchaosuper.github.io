@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="keywords" content="中国股票,指数,沪深,投资组合,数据可视化">
+  <meta name="description" content="实时跟踪中国股票组合净值与主要指数表现">
+  <meta name="author" content="huangchaosuper@live.cn">
+  <link rel="shortcut icon" href="./images/favicon.ico">
+  <title>HC QUANT GROW · China Stock</title>
+  <link rel="stylesheet" href="./assets/bootstrap/css/bootstrap.min.css">
+  <link rel="stylesheet" href="./stylesheets/main.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+</head>
+<body class="bg-subtle">
+  <header class="app-header fixed-top shadow-sm">
+    <nav class="navbar navbar-expand-lg border-bottom border-black border-opacity-10">
+      <div class="container-fluid px-4">
+        <a class="navbar-brand d-flex align-items-center gap-2 fw-bold text-uppercase tracking-wide" href="#top">
+          <img src="./images/logo.png" alt="Logo" width="36" height="36" class="rounded-circle">
+          HC QUANT GROW
+        </a>
+        <div class="ms-auto d-flex gap-2">
+          <a class="btn btn-sm btn-outline-dark" href="./index.html">Crypto Coin</a>
+          <a class="btn btn-sm btn-dark disabled" href="./china-stock.html" aria-current="page">China Stock</a>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <main id="top" class="app-main">
+    <section id="stock-chart-panel" class="chart-panel">
+      <div class="container-fluid px-4">
+        <div class="panel-wrapper">
+          <div class="panel-header d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <div>
+              <div class="panel-title text-uppercase fw-bold small text-muted">
+                <span>China Stock Portfolio</span>
+                <button type="button" class="btn btn-link px-3" id="refresh-stock" title="刷新指标">
+                  <i class="bi bi-arrow-clockwise"></i>
+                </button>
+              </div>
+              <h1 class="h3 fw-bold mb-0 text-primary-emphasis">SSE · DL2025 · MT2025</h1>
+            </div>
+            <div class="panel-actions d-flex flex-column align-items-end gap-2">
+              <div class="d-flex gap-2 flex-wrap justify-content-end align-items-center">
+                <div class="btn-group btn-group-sm" role="group" aria-label="Value type">
+                  <input type="radio" class="btn-check" name="stock-mode" id="stock-mode-absolute" autocomplete="off" checked>
+                  <label class="btn btn-outline-dark px-3" for="stock-mode-absolute">$</label>
+                  <input type="radio" class="btn-check" name="stock-mode" id="stock-mode-percent" autocomplete="off">
+                  <label class="btn btn-outline-dark px-3" for="stock-mode-percent">%</label>
+                </div>
+                <div class="btn-group btn-group-sm" role="group" aria-label="Range filter">
+                  <input type="radio" class="btn-check" name="stock-range" id="stock-range-24h" autocomplete="off" checked>
+                  <label class="btn btn-outline-dark px-3" for="stock-range-24h">24H</label>
+                  <input type="radio" class="btn-check" name="stock-range" id="stock-range-72h" autocomplete="off">
+                  <label class="btn btn-outline-dark px-3" for="stock-range-72h">72H</label>
+                  <input type="radio" class="btn-check" name="stock-range" id="stock-range-7d" autocomplete="off">
+                  <label class="btn btn-outline-dark px-3" for="stock-range-7d">7D</label>
+                  <input type="radio" class="btn-check" name="stock-range" id="stock-range-30d" autocomplete="off">
+                  <label class="btn btn-outline-dark px-3" for="stock-range-30d">30D</label>
+                  <input type="radio" class="btn-check" name="stock-range" id="stock-range-all" autocomplete="off">
+                  <label class="btn btn-outline-dark px-3" for="stock-range-all">ALL</label>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div class="index-panel-layout">
+              <div class="index-chart-block">
+                <div id="stock-chart" class="index-chart"></div>
+                <div class="chart-meta d-flex flex-wrap justify-content-between align-items-center mt-3 text-muted small">
+                  <div id="stock-updated">数据加载中…</div>
+                  <div class="text-uppercase fw-semibold">
+                    <span id="stock-range-label">24H</span> | China Stock
+                  </div>
+                </div>
+              </div>
+              <aside class="index-highlights-card">
+                <h2 class="h6 text-uppercase text-muted fw-semibold mb-3">Performance Highlights</h2>
+                <ul id="stock-highlights" class="list-unstyled mb-0 small"></ul>
+              </aside>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="info-section">
+      <div class="container-fluid px-4">
+        <div class="info-card">
+          <div class="d-flex justify-content-between align-items-center mb-3 gap-3 flex-wrap">
+            <h2 class="h6 text-uppercase text-muted fw-semibold mb-0">Latest Snapshot</h2>
+          </div>
+          <div id="stock-cards" class="coin-grid"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer py-4">
+    <div class="container text-center text-white-50 small">
+      <div>© 2014–<span id="current-year"></span> huangchaosuper</div>
+      <div class="mt-2">
+        Powered by CodeX &amp; Bootstrap&nbsp;5 &amp; Apache ECharts | Hosted on GitHub Pages
+      </div>
+    </div>
+  </footer>
+
+  <script src="./assets/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script src="./assets/echarts/echarts.min.js"></script>
+  <script src="./javascripts/china-stock.js"></script>
+</body>
+</html>
