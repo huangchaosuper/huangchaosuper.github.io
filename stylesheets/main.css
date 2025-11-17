@@ -244,6 +244,38 @@ body {
   padding: 1.5rem 1.75rem 1.75rem;
 }
 
+#stock-chart-panel .panel-header {
+  row-gap: 0.5rem;
+}
+
+.portfolio-chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.45rem;
+  align-items: center;
+}
+
+.portfolio-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: #f3f6fb;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #0f172a;
+  line-height: 1.15;
+}
+
+@media (max-width: 575.98px) {
+  .portfolio-chip {
+    font-size: 0.9rem;
+    padding: 0.2rem 0.5rem;
+  }
+}
+
 .index-panel-layout {
   display: flex;
   flex-direction: column;

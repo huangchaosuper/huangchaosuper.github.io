@@ -266,8 +266,15 @@ function updateChart(state) {
 
   const option = {
     animation: true,
-    grid: { top: 32, left: 48, right: 24, bottom: 40 },
-    legend: { top: 0, left: 'center' },
+    grid: { top: 56, left: 48, right: 24, bottom: 40 },
+    legend: {
+      type: 'scroll',
+      top: 8,
+      left: 8,
+      right: 8,
+      itemGap: 12,
+      textStyle: { fontSize: 12 }
+    },
     tooltip: {
       trigger: 'axis',
       valueFormatter: (value) => formatStockValue(value, mode)
@@ -400,7 +407,13 @@ function updatePortfolioTitle(portfolios, titleEl) {
     titleEl.textContent = fallback;
     return;
   }
-  titleEl.textContent = portfolios.join(' · ');
+  const chips = portfolios
+    .map(
+      (name) =>
+        `<span class="portfolio-chip" aria-label="组合 ${name}">${name}</span>`
+    )
+    .join('');
+  titleEl.innerHTML = `<div class="portfolio-chip-list" role="list">${chips}</div>`;
 }
 
 function setButtonLoading(button, isLoading, loadingLabel = '刷新中…') {
