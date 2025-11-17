@@ -54,7 +54,7 @@ async function loadStockIndexData(range = '24h') {
   };
 
   const baseSelect =
-    'stock_index?select=timestamp,portfolio,value&order=timestamp';
+    'stock_index?select=timestamp,portfolio,value,describe&order=timestamp';
   const hours = RANGE_TO_HOURS[range];
   if (!hours && range !== 'all') {
     throw new Error(`不支持的范围：${range}`);
@@ -105,6 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
     raw: [],
     timeline: [],
     portfolios: [],
+    descriptions: {},
     mode: 'absolute',
     range: '24h'
   };
@@ -134,6 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
         state.raw = rows;
         state.timeline = parsed.timeline;
         state.portfolios = parsed.portfolios;
+        state.descriptions = parsed.descriptions;
         state.range = range;
         renderAll();
       })
@@ -210,11 +212,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function transformStockRows(rows) {
   if (!Array.isArray(rows) || !rows.length) {
-    return { timeline: [], portfolios: [] };
+    return { timeline: [], portfolios: [], descriptions: {} };
   }
 
   const timelineMap = new Map();
   const portfolios = new Set();
+  const descriptions = {};
 
   rows.forEach((row) => {
     const time = new Date(row.timestamp);
@@ -224,6 +227,9 @@ function transformStockRows(rows) {
     }
     const name = row.portfolio || 'UNKNOWN';
     portfolios.add(name);
+    if (row.describe && !descriptions[name]) {
+      descriptions[name] = String(row.describe);
+    }
     const bucketKey = time.toISOString();
     if (!timelineMap.has(bucketKey)) {
       timelineMap.set(bucketKey, {
@@ -245,7 +251,8 @@ function transformStockRows(rows) {
   });
   return {
     timeline,
-    portfolios: sortedPortfolios
+    portfolios: sortedPortfolios,
+    descriptions
   };
 }
 
@@ -376,6 +383,8 @@ function updateCards(state, container) {
       const diff = end - start;
       const diffSign = diff >= 0 ? '+' : '';
       const pctSign = pct >= 0 ? '+' : '';
+      const desc =
+        (state.descriptions && state.descriptions[name]) || '最新数值';
       const changeClass = diff >= 0 ? 'text-success' : 'text-danger';
       const valueLabel =
         state.mode === 'percent'
@@ -388,7 +397,7 @@ function updateCards(state, container) {
       return `
         <div class="coin-card flex-grow-1">
           <div class="coin-symbol">${name}</div>
-          <div class="coin-name text-muted">最新数值</div>
+          <div class="coin-name text-muted">${desc}</div>
           <div class="coin-price fw-semibold">${valueLabel}</div>
           <div class="coin-change ${changeClass}">${secondaryLabel}</div>
         </div>
