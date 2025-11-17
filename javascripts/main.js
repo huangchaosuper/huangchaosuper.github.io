@@ -613,8 +613,8 @@ function updateChart(state) {
           color: '#e9ecef'
         }
       },
-      min: (value) => value.min,
-      max: (value) => value.max
+      min: 'dataMin',
+      max: 'dataMax'
     },
     series
   };

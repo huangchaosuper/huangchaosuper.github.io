@@ -284,7 +284,9 @@ function updateChart(state) {
       type: 'value',
       axisLabel: {
         formatter: (value) => formatStockValue(value, mode)
-      }
+      },
+      min: 'dataMin',
+      max: 'dataMax'
     },
     series: portfolios.map((name) => ({
       type: 'line',
