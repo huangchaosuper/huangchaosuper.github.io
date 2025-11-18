@@ -65,6 +65,55 @@ body {
   color: #1f2933;
 }
 
+.app-nav-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem;
+  background: #f7f7f5;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 999px;
+  box-shadow: 0 0.5rem 1.25rem -1rem rgba(15, 23, 42, 0.2);
+}
+
+.nav-switch-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.45rem 0.9rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-decoration: none;
+  color: #1f2933;
+  background: #ffffff;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.nav-switch-btn:hover,
+.nav-switch-btn:focus {
+  color: #111827;
+  border-color: rgba(15, 23, 42, 0.12);
+  box-shadow: 0 0.5rem 1rem -0.75rem rgba(15, 23, 42, 0.25);
+}
+
+.nav-switch-btn.active {
+  color: #ffffff;
+  background: linear-gradient(135deg, #111827, #1f2933);
+  border-color: #111827;
+  box-shadow: 0 0.75rem 1.5rem -1rem rgba(17, 24, 39, 0.35);
+}
+
+.nav-switch-btn.disabled {
+  cursor: not-allowed;
+  color: rgba(17, 24, 39, 0.35);
+  background: #f4f4f2;
+  border-color: rgba(17, 24, 39, 0.08);
+  box-shadow: none;
+}
+
 .ticker-strip {
   background: linear-gradient(90deg, rgba(248, 249, 252, 0.8), rgba(244, 239, 233, 0.8));
 }
