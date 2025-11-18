@@ -69,73 +69,38 @@ async function loadMarketDataFromSupabase() {
     .filter(Boolean);
 }
 
-// 从 Supabase 读取 quant_index，返回和原 parseCsv 一样的结构
+// 从 Supabase 读取 coin_index（竖表），返回按时间整合后的结构（动态指标）
 async function loadIndexDataFromSupabase(range = 'all') {
   const RANGE_TO_HOURS = {
     '24h': 24,
-    '72h': 72
+    '72h': 72,
+    '7d': 7 * 24,
+    '30d': 30 * 24
   };
 
-  const baseSelect =
-    'quant_index?select=ts,q2025,cmc20,cmc100,g2025,b2025&order=ts';
+  const baseSelect = 'coin_index?select=ts,portfolio,value&order=ts';
   const hours = RANGE_TO_HOURS[range];
-  let rows;
-  if (hours) {
-    const cutoffIso = new Date(Date.now() - hours * 60 * 60 * 1000).toISOString();
-    const query = `${baseSelect}&ts=gte.${encodeURIComponent(cutoffIso)}`;
-    rows = await supabaseFetch(query);
-  } else {
-    rows = await supabaseFetchAllPages(baseSelect);
-  }
-
-  const cleanEntries = [];
-
-  rows.forEach((r) => {
-    const timestampRaw = r.ts || r.bucket_ts || r.ts_bucket || r.ts_hour;
-    if (!timestampRaw) return;
-
-    const q2025Value = parseFloat(normalizeNumberString(r.q2025));
-    const cmc20Value = parseFloat(normalizeNumberString(r.cmc20));
-    const cmc100Value = parseFloat(normalizeNumberString(r.cmc100));
-    const g2025Candidate = parseFloat(normalizeNumberString(r.g2025));
-    const b2025Candidate = parseFloat(normalizeNumberString(r.b2025));
-
-    const hasDirtyMetric = (value) => !Number.isFinite(value) || value < 0;
-    if ([q2025Value, cmc20Value, cmc100Value].some(hasDirtyMetric)) {
-      return;
+  const rows = await (() => {
+    if (hours) {
+      const cutoffIso = new Date(Date.now() - hours * 60 * 60 * 1000).toISOString();
+      const query = `${baseSelect}&ts=gte.${encodeURIComponent(cutoffIso)}`;
+      return supabaseFetchAllPages(query);
     }
+    return supabaseFetchAllPages(baseSelect);
+  })();
 
-    const g2025Value =
-      Number.isFinite(g2025Candidate) && g2025Candidate >= 0
-        ? g2025Candidate
-        : null;
-    const b2025Value =
-      Number.isFinite(b2025Candidate) && b2025Candidate >= 0
-        ? b2025Candidate
-        : null;
-
-    const time = new Date(timestampRaw);
-    if (Number.isNaN(time.valueOf())) {
-      return;
-    }
-
-    cleanEntries.push({
-      timestamp: timestampRaw,
-      time,
-      q2025: q2025Value,
-      g2025: g2025Value,
-      b2025: b2025Value,
-      cmc20: cmc20Value,
-      cmc100: cmc100Value
-    });
-  });
-
-  const normalized = range === 'all' ? bucketEntriesByHour(cleanEntries) : cleanEntries;
-  return normalized;
+  const parsed = transformCoinIndexRows(rows);
+  const normalizedEntries =
+    range === 'all'
+      ? bucketEntriesByHour(parsed.entries, parsed.metricKeys)
+      : parsed.entries;
+  return { entries: normalizedEntries, metricKeys: parsed.metricKeys };
 }
 
 const RANGE_LABELS = {
   all: 'ALL',
+  '30d': '30D',
+  '7d': '7D',
   '72h': '72H',
   '24h': '24H'
 };
@@ -151,9 +116,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const highlightsEl = document.getElementById('index-highlights');
   const updatedEl = document.getElementById('chart-updated');
   const rangeLabelEl = document.getElementById('range-label');
+  const indexTitleEl = document.getElementById('index-title');
   const percentToggle = document.getElementById('mode-percent');
   const absoluteToggle = document.getElementById('mode-absolute');
   const rangeAllToggle = document.getElementById('range-all');
+  const range30dToggle = document.getElementById('range-30d');
+  const range7dToggle = document.getElementById('range-7d');
   const range72hToggle = document.getElementById('range-72h');
   const range24hToggle = document.getElementById('range-24h');
   const chartContainer = document.getElementById('index-chart');
@@ -200,14 +168,33 @@ document.addEventListener('DOMContentLoaded', () => {
     range: '24h',
     rawData: [],
     rawDataByRange: {},
+    metricKeys: [],
     data: [],
     chart
   };
 
-  const renderState = () => {
-    if (!state.data.length) {
+  const updateMetricTitle = (metricKeys = []) => {
+    if (!indexTitleEl) {
       return;
     }
+    const metrics = Array.isArray(metricKeys)
+      ? metricKeys
+          .filter((key) => typeof key === 'string' && key.trim())
+          .map((key) => key.toUpperCase())
+      : [];
+    const fallback = indexTitleEl.dataset.defaultTitle || indexTitleEl.textContent;
+    if (!metrics.length) {
+      indexTitleEl.textContent = fallback || 'Crypto Index';
+      return;
+    }
+    indexTitleEl.textContent = metrics.join(' · ');
+  };
+
+  const renderState = () => {
+    if (!state.data.length || !state.metricKeys?.length) {
+      return;
+    }
+    updateMetricTitle(state.metricKeys);
     updateChart(state);
     updateHighlights(state, highlightsEl, updatedEl, rangeLabelEl);
   };
@@ -222,9 +209,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const loadRangeData = (range, { force = false } = {}) => {
     const cached = state.rawDataByRange[range];
-    if (!force && Array.isArray(cached) && cached.length) {
-      state.rawData = cached;
-      state.data = filterDataByRange(cached, range);
+    if (
+      !force &&
+      cached &&
+      Array.isArray(cached.entries) &&
+      cached.entries.length
+    ) {
+      state.rawData = cached.entries;
+      state.metricKeys = cached.metricKeys;
+      state.data = filterDataByRange(cached.entries, range);
+      updateMetricTitle(state.metricKeys);
       renderState();
       return Promise.resolve();
     }
@@ -238,19 +232,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     return loadIndexDataFromSupabase(range)
       .then((parsed) => {
-        if (!parsed.length) {
+        if (!parsed.entries.length || !parsed.metricKeys.length) {
           throw new Error('指数数据为空');
         }
         state.rawDataByRange[range] = parsed;
         if (requestId !== activeRangeRequestId || state.range !== range) {
           return;
         }
-        state.rawData = parsed;
-        state.data = filterDataByRange(parsed, range);
+        state.rawData = parsed.entries;
+        state.metricKeys = parsed.metricKeys;
+        state.data = filterDataByRange(parsed.entries, range);
+        updateMetricTitle(state.metricKeys);
         renderState();
       })
       .catch((error) => {
-        console.error('加载 Supabase quant_index 失败:', error);
+        console.error('加载 Supabase coin_index 失败:', error);
         if (requestId !== activeRangeRequestId || state.range !== range) {
           return;
         }
@@ -296,6 +292,18 @@ document.addEventListener('DOMContentLoaded', () => {
   range72hToggle?.addEventListener('change', () => {
     if (range72hToggle.checked) {
       activateRange('72h');
+    }
+  });
+
+  range7dToggle?.addEventListener('change', () => {
+    if (range7dToggle.checked) {
+      activateRange('7d');
+    }
+  });
+
+  range30dToggle?.addEventListener('change', () => {
+    if (range30dToggle.checked) {
+      activateRange('30d');
     }
   });
 
@@ -477,70 +485,97 @@ function parseCsv(input) {
   return cleanEntries;
 }
 
+function transformCoinIndexRows(rows) {
+  if (!Array.isArray(rows) || !rows.length) {
+    return { entries: [], metricKeys: [] };
+  }
+
+  const metricSet = new Set();
+  const metricOrder = [];
+  const entriesByTime = new Map();
+
+  rows.forEach((row) => {
+    const timestampRaw =
+      row.timestamp || row.ts || row.bucket_ts || row.ts_bucket || row.ts_hour;
+    const portfolioRaw = (row.portfolio || row.name || '').toString().trim();
+    if (!timestampRaw || !portfolioRaw) {
+      return;
+    }
+
+    const metricKey = portfolioRaw;
+    if (!metricSet.has(metricKey)) {
+      metricSet.add(metricKey);
+      metricOrder.push(metricKey);
+    }
+
+    const value = parseFloat(normalizeNumberString(row.value));
+    if (!Number.isFinite(value) || value < 0) {
+      return;
+    }
+    const time = new Date(timestampRaw);
+    if (Number.isNaN(time.valueOf())) {
+      return;
+    }
+    const bucketKey = time.toISOString();
+    if (!entriesByTime.has(bucketKey)) {
+      entriesByTime.set(bucketKey, {
+        timestamp: bucketKey,
+        time
+      });
+    }
+    const entry = entriesByTime.get(bucketKey);
+    entry[metricKey] = value;
+  });
+
+  const entries = Array.from(entriesByTime.values()).sort((a, b) => a.time - b.time);
+  return { entries, metricKeys: metricOrder };
+}
+
 function updateChart(state) {
-  const { chart, data, rawData, mode } = state;
-  if (!chart || !data.length) {
+  const { chart, data, rawData, mode, metricKeys } = state;
+  if (!chart || !data.length || !Array.isArray(metricKeys) || !metricKeys.length) {
     return;
   }
 
-  const seriesConfig = [
-    {
-      key: 'q2025',
-      name: 'Q2025',
-      color: '#2fb344'
-    },
-    {
-      key: 'g2025',
-      name: 'G2025',
-      color: '#a855f7'
-    },
-    {
-      key: 'b2025',
-      name: 'B2025',
-      color: '#0ea5e9'
-    },
-    {
-      key: 'cmc20',
-      name: 'CMC20',
-      color: '#4c6ef5'
-    },
-    {
-      key: 'cmc100',
-      name: 'CMC100',
-      color: '#fa8c16'
-    }
+  const COLOR_PALETTE = [
+    '#2fb344',
+    '#a855f7',
+    '#0ea5e9',
+    '#4c6ef5',
+    '#fa8c16',
+    '#ef4444',
+    '#14b8a6',
+    '#94a3b8',
+    '#f59e0b',
+    '#7c3aed'
   ];
 
-  const baseValues = seriesConfig.reduce((acc, serie) => {
+  const baseValues = metricKeys.reduce((acc, key) => {
     const baseEntry =
-      (Array.isArray(data) ? data : []).find((entry) =>
-        Number.isFinite(entry[serie.key])
-      ) ||
-      (Array.isArray(rawData) ? rawData : []).find((entry) =>
-        Number.isFinite(entry[serie.key])
-      );
-    acc[serie.key] = baseEntry ? baseEntry[serie.key] : NaN;
+      (Array.isArray(data) ? data : []).find((entry) => Number.isFinite(entry[key])) ||
+      (Array.isArray(rawData) ? rawData : []).find((entry) => Number.isFinite(entry[key]));
+    acc[key] = baseEntry ? baseEntry[key] : NaN;
     return acc;
   }, {});
 
-  const series = seriesConfig.map((serie) => ({
-    name: serie.name,
+  const series = metricKeys.map((key, idx) => ({
+    name: key,
     type: 'line',
     smooth: true,
     symbol: 'none',
     lineStyle: {
       width: 3,
-      color: serie.color
+      color: COLOR_PALETTE[idx % COLOR_PALETTE.length]
     },
     emphasis: {
       scale: true
     },
     data: data.map((entry) => {
-      const raw = entry[serie.key];
+      const raw = entry[key];
       if (!Number.isFinite(raw)) {
         return [entry.time, null];
       }
-      const baseValue = baseValues[serie.key];
+      const baseValue = baseValues[key];
       const value =
         mode === 'percent' && Number.isFinite(baseValue)
           ? normalizePercent(raw, baseValue)
@@ -552,7 +587,9 @@ function updateChart(state) {
   }));
 
   const option = {
-    color: seriesConfig.map((serie) => serie.color),
+    color: metricKeys.map(
+      (key, idx) => COLOR_PALETTE[idx % COLOR_PALETTE.length]
+    ),
     backgroundColor: 'transparent',
     animation: true,
     tooltip: {
@@ -623,8 +660,8 @@ function updateChart(state) {
 }
 
 function updateHighlights(state, highlightsEl, updatedEl, rangeLabelEl) {
-  const { data, range } = state;
-  if (!data || !data.length) {
+  const { data, range, metricKeys } = state;
+  if (!data || !data.length || !metricKeys?.length) {
     return;
   }
 
@@ -678,23 +715,15 @@ function updateHighlights(state, highlightsEl, updatedEl, rangeLabelEl) {
     `;
   };
 
-  const metrics = [
-    { key: 'q2025', label: 'Q2025' },
-    { key: 'g2025', label: 'G2025' },
-    { key: 'b2025', label: 'B2025' },
-    { key: 'cmc20', label: 'CMC20' },
-    { key: 'cmc100', label: 'CMC100' }
-  ];
-
   const reversedData = [...data].reverse();
-  const items = metrics
-    .map(({ key, label }) => {
+  const items = metricKeys
+    .map((key) => {
       const firstValid = data.find((entry) => Number.isFinite(entry[key]));
       const lastValid = reversedData.find((entry) => Number.isFinite(entry[key]));
       if (!firstValid || !lastValid) {
         return '';
       }
-      return makeListItem(label, lastValid[key], firstValid[key]);
+      return makeListItem(key, lastValid[key], firstValid[key]);
     })
     .filter(Boolean);
 
@@ -715,6 +744,8 @@ function filterDataByRange(data, range) {
   }
 
   const RANGE_IN_HOURS = {
+    '30d': 30 * 24,
+    '7d': 7 * 24,
     '72h': 72,
     '24h': 24
   };
@@ -788,10 +819,24 @@ function normalizeNumberString(raw) {
   return value;
 }
 
-function bucketEntriesByHour(entries) {
+function bucketEntriesByHour(entries, metricKeys = []) {
   if (!Array.isArray(entries) || !entries.length) {
     return entries || [];
   }
+
+  const keys =
+    Array.isArray(metricKeys) && metricKeys.length
+      ? metricKeys
+      : Array.from(
+          entries.reduce((set, entry) => {
+            Object.keys(entry).forEach((key) => {
+              if (key !== 'time' && key !== 'timestamp') {
+                set.add(key);
+              }
+            });
+            return set;
+          }, new Set())
+        );
 
   const BUCKET_MS = 60 * 60 * 1000;
   const aggregates = new Map();
@@ -806,17 +851,14 @@ function bucketEntriesByHour(entries) {
       aggregates.set(bucketKey, {
         time: new Date(bucketTimestamp),
         timestamp: bucketKey,
-        metrics: {
-          q2025: { sum: 0, count: 0 },
-          g2025: { sum: 0, count: 0 },
-          b2025: { sum: 0, count: 0 },
-          cmc20: { sum: 0, count: 0 },
-          cmc100: { sum: 0, count: 0 }
-        }
+        metrics: keys.reduce((acc, key) => {
+          acc[key] = { sum: 0, count: 0 };
+          return acc;
+        }, {})
       });
     }
     const bucket = aggregates.get(bucketKey);
-    Object.keys(bucket.metrics).forEach((key) => {
+    keys.forEach((key) => {
       const value = entry[key];
       if (Number.isFinite(value)) {
         bucket.metrics[key].sum += value;
@@ -838,8 +880,10 @@ function bucketEntriesByHour(entries) {
       };
     })
     .filter((entry) =>
-      Object.values(entry).some(
-        (value) =>
+      Object.entries(entry).some(
+        ([key, value]) =>
+          key !== 'time' &&
+          key !== 'timestamp' &&
           value &&
           typeof value === 'number' &&
           Number.isFinite(value)

@@ -40,7 +40,7 @@
                   <i class="bi bi-arrow-clockwise"></i>
                 </button>
               </div>
-              <h1 class="h3 fw-bold mb-0 text-primary-emphasis">CMC20 · CMC100 · Q2025 · G2025 · B2025</h1>
+              <h1 class="h3 fw-bold mb-0 text-primary-emphasis" id="index-title">CMC20 · CMC100 · Q2025 · G2025 · B2025</h1>
             </div>
             <div class="panel-actions d-flex flex-column align-items-end gap-2">
               <div class="d-flex gap-2 flex-wrap justify-content-end align-items-center">
@@ -55,6 +55,10 @@
                   <label class="btn btn-outline-dark px-3" for="range-24h">24H</label>
                   <input type="radio" class="btn-check" name="range-mode" id="range-72h" autocomplete="off">
                   <label class="btn btn-outline-dark px-3" for="range-72h">72H</label>
+                  <input type="radio" class="btn-check" name="range-mode" id="range-7d" autocomplete="off">
+                  <label class="btn btn-outline-dark px-3" for="range-7d">7D</label>
+                  <input type="radio" class="btn-check" name="range-mode" id="range-30d" autocomplete="off">
+                  <label class="btn btn-outline-dark px-3" for="range-30d">30D</label>
                   <input type="radio" class="btn-check" name="range-mode" id="range-all" autocomplete="off">
                   <label class="btn btn-outline-dark px-3" for="range-all">ALL</label>
                 </div>
@@ -68,7 +72,7 @@
                 <div id="chart-meta" class="chart-meta d-flex flex-wrap justify-content-between align-items-center mt-3 text-muted small">
                   <div id="chart-updated">数据加载中…</div>
                   <div class="text-uppercase fw-semibold">
-                    <span id="range-label">24H</span> | 24h · 7d
+                    <span id="range-label">24H</span> | 24h · 72h · 7d · 30d
                   </div>
                 </div>
               </div>
