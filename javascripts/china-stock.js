@@ -60,14 +60,15 @@ async function loadStockIndexData(range = '24h') {
     throw new Error(`不支持的范围：${range}`);
   }
 
-  if (!hours) {
-    return supabaseFetchStockPages(baseSelect);
-  }
-  const cutoffIso = new Date(Date.now() - hours * 60 * 60 * 1000).toISOString();
-  const query = `${baseSelect}&timestamp=gte.${encodeURIComponent(
-    cutoffIso
-  )}`;
-  return supabaseFetchStock(query);
+  const cutoffIso = hours
+    ? new Date(Date.now() - hours * 60 * 60 * 1000).toISOString()
+    : null;
+  const query = cutoffIso
+    ? `${baseSelect}&timestamp=gte.${encodeURIComponent(cutoffIso)}`
+    : baseSelect;
+
+  // Supabase REST API 默认 limit=1000；7D/30D 可能超过单页，需要分页读取。
+  return supabaseFetchStockPages(query);
 }
 
 document.addEventListener('DOMContentLoaded', () => {
