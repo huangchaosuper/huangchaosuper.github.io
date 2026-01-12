@@ -176,6 +176,79 @@ body {
   font-size: 0.85rem;
 }
 
+.world-hero .panel-wrapper {
+  margin-bottom: 1.5rem;
+}
+
+.world-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.world-chart {
+  width: 100%;
+  height: 260px;
+}
+
+.world-news-list {
+  display: grid;
+  gap: 0.85rem;
+  font-size: 0.9rem;
+}
+
+.news-item {
+  padding-bottom: 0.85rem;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.news-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.news-title {
+  font-weight: 600;
+  color: #1f2933;
+}
+
+.news-title a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.news-title a:hover {
+  text-decoration: underline;
+}
+
+.news-meta {
+  margin-top: 0.25rem;
+  color: rgba(31, 41, 51, 0.65);
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.etf-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.25rem;
+}
+
+.etf-card {
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 0.8rem;
+  padding: 1rem;
+  box-shadow: 0 0.35rem 1rem -1rem rgba(15, 23, 42, 0.2);
+}
+
+.kline-chart {
+  width: 100%;
+  height: 220px;
+}
+
 @media (min-width: 992px) {
   .coin-grid {
     overflow: visible;

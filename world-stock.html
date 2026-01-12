@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="keywords" content="世界股票,ETF,长期投资,VIX,行情,新闻">
+  <meta name="description" content="长期投资 ETF 组合与市场情绪跟踪">
+  <meta name="author" content="huangchaosuper@live.cn">
+  <link rel="shortcut icon" href="./images/favicon.ico">
+  <title>HC QUANT GROW · World Stock</title>
+  <link rel="stylesheet" href="./assets/bootstrap/css/bootstrap.min.css">
+  <link rel="stylesheet" href="./stylesheets/main.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+</head>
+<body class="bg-subtle">
+  <header class="app-header fixed-top shadow-sm">
+    <nav class="navbar navbar-expand-lg border-bottom border-black border-opacity-10">
+      <div class="container-fluid px-4">
+        <a class="navbar-brand d-flex align-items-center gap-2 fw-bold text-uppercase tracking-wide" href="./world-stock.html">
+          <img src="./images/logo.png" alt="Logo" width="36" height="36" class="rounded-circle">
+          HC QUANT GROW
+        </a>
+        <div class="ms-auto">
+          <div class="app-nav-switch" role="group" aria-label="Data domains">
+            <a class="nav-switch-btn" href="./index.html">CRYPTO COIN</a>
+            <a class="nav-switch-btn" href="./china-stock.html">CHINA STOCK</a>
+            <a class="nav-switch-btn active" href="./world-stock.html" aria-current="page">WORLD STOCK</a>
+          </div>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <main id="top" class="app-main">
+    <section class="world-hero">
+      <div class="container-fluid px-4">
+        <div class="panel-wrapper">
+          <div class="panel-header d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <div>
+              <div class="panel-title text-uppercase fw-bold small text-muted">Long-Term Allocation</div>
+              <h1 class="h3 fw-bold mb-0 text-primary-emphasis">World Stock · ETF Focus</h1>
+            </div>
+            <div class="text-muted small">长期仓位 · 低频观察 · 关注趋势</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="world-overview">
+      <div class="container-fluid px-4">
+        <div class="world-grid">
+          <div class="panel-wrapper">
+            <div class="panel-header d-flex align-items-center justify-content-between">
+              <div class="panel-title text-uppercase fw-bold small text-muted">Fear Gauge</div>
+              <button type="button" class="btn btn-link px-3" id="refresh-vix" title="刷新 VIX">
+                <i class="bi bi-arrow-clockwise"></i>
+              </button>
+            </div>
+            <div class="panel-body">
+              <div id="vix-chart" class="world-chart"></div>
+              <div class="chart-meta d-flex justify-content-between align-items-center mt-3 text-muted small">
+                <div id="vix-updated">数据加载中…</div>
+                <div class="text-uppercase fw-semibold">VIX</div>
+              </div>
+            </div>
+          </div>
+          <aside class="panel-wrapper">
+            <div class="panel-header d-flex align-items-center justify-content-between">
+              <div class="panel-title text-uppercase fw-bold small text-muted">News Radar</div>
+              <button type="button" class="btn btn-link px-3" id="refresh-news" title="刷新新闻">
+                <i class="bi bi-arrow-clockwise"></i>
+              </button>
+            </div>
+            <div class="panel-body">
+              <ul id="news-list" class="world-news-list list-unstyled mb-0"></ul>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <section class="world-etf">
+      <div class="container-fluid px-4">
+        <div class="panel-wrapper">
+          <div class="panel-header d-flex align-items-center justify-content-between">
+            <div>
+              <div class="panel-title text-uppercase fw-bold small text-muted">ETF Candles</div>
+              <h2 class="h5 fw-bold mb-0">VDY.TO · XBM.TO · BIP.UN.TO · ZQQ.TO</h2>
+            </div>
+            <button type="button" class="btn btn-link px-3" id="refresh-etf" title="刷新 ETF">
+              <i class="bi bi-arrow-clockwise"></i>
+            </button>
+          </div>
+          <div class="panel-body">
+            <div class="etf-grid">
+              <article class="etf-card">
+                <header class="d-flex justify-content-between align-items-center mb-2">
+                  <h3 class="h6 fw-semibold mb-0">VDY.TO</h3>
+                  <span class="text-muted small">Dividend</span>
+                </header>
+                <div id="kline-vdy" class="kline-chart" data-symbol="VDY.TO"></div>
+              </article>
+              <article class="etf-card">
+                <header class="d-flex justify-content-between align-items-center mb-2">
+                  <h3 class="h6 fw-semibold mb-0">XBM.TO</h3>
+                  <span class="text-muted small">Materials</span>
+                </header>
+                <div id="kline-xbm" class="kline-chart" data-symbol="XBM.TO"></div>
+              </article>
+              <article class="etf-card">
+                <header class="d-flex justify-content-between align-items-center mb-2">
+                  <h3 class="h6 fw-semibold mb-0">BIP.UN.TO</h3>
+                  <span class="text-muted small">Infrastructure</span>
+                </header>
+                <div id="kline-bip" class="kline-chart" data-symbol="BIP.UN.TO"></div>
+              </article>
+              <article class="etf-card">
+                <header class="d-flex justify-content-between align-items-center mb-2">
+                  <h3 class="h6 fw-semibold mb-0">ZQQ.TO</h3>
+                  <span class="text-muted small">Nasdaq 100</span>
+                </header>
+                <div id="kline-zqq" class="kline-chart" data-symbol="ZQQ.TO"></div>
+              </article>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer py-4">
+    <div class="container text-center text-white-50 small">
+      <div>© 2014–<span id="current-year"></span> huangchaosuper</div>
+      <div class="mt-2">
+        Powered by CodeX &amp; Bootstrap&nbsp;5 &amp; Apache ECharts | Hosted on GitHub Pages
+      </div>
+    </div>
+  </footer>
+
+  <script src="./assets/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script src="./assets/echarts/echarts.min.js"></script>
+  <script src="./javascripts/world-stock.js"></script>
+</body>
+</html>
