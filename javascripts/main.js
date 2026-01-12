@@ -69,7 +69,7 @@ async function loadMarketDataFromSupabase() {
     .filter(Boolean);
 }
 
-// 从 Supabase 读取 coin_index（竖表），返回按时间整合后的结构（动态指标）
+// 从 Supabase 读取 coin_index 或聚合视图（竖表），返回按时间整合后的结构（动态指标）
 async function loadIndexDataFromSupabase(range = 'all') {
   const RANGE_TO_HOURS = {
     '24h': 24,
@@ -78,23 +78,45 @@ async function loadIndexDataFromSupabase(range = 'all') {
     '30d': 30 * 24
   };
 
-  const baseSelect = 'coin_index?select=ts,portfolio,value&order=ts';
+  const VIEW_CONFIG = {
+    all: {
+      table: 'coin_index_daily',
+      timestampField: 'ts_bucket'
+    },
+    hourly: {
+      table: 'coin_index_hourly',
+      timestampField: 'ts_bucket'
+    }
+  };
+
+  const useHourlyView = range === '7d' || range === '30d';
+  const useDailyView = range === 'all';
+  const table = useDailyView
+    ? VIEW_CONFIG.all.table
+    : useHourlyView
+      ? VIEW_CONFIG.hourly.table
+      : 'coin_index';
+  const timestampField = useDailyView
+    ? VIEW_CONFIG.all.timestampField
+    : useHourlyView
+      ? VIEW_CONFIG.hourly.timestampField
+      : 'ts';
+
+  const baseSelect = `${table}?select=${timestampField},portfolio,value&order=${timestampField}`;
   const hours = RANGE_TO_HOURS[range];
   const rows = await (() => {
     if (hours) {
       const cutoffIso = new Date(Date.now() - hours * 60 * 60 * 1000).toISOString();
-      const query = `${baseSelect}&ts=gte.${encodeURIComponent(cutoffIso)}`;
+      const query = `${baseSelect}&${timestampField}=gte.${encodeURIComponent(
+        cutoffIso
+      )}`;
       return supabaseFetchAllPages(query);
     }
     return supabaseFetchAllPages(baseSelect);
   })();
 
   const parsed = transformCoinIndexRows(rows);
-  const normalizedEntries =
-    range === 'all'
-      ? bucketEntriesByHour(parsed.entries, parsed.metricKeys)
-      : parsed.entries;
-  return { entries: normalizedEntries, metricKeys: parsed.metricKeys };
+  return { entries: parsed.entries, metricKeys: parsed.metricKeys };
 }
 
 const RANGE_LABELS = {

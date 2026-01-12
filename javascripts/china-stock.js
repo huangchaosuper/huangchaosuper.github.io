@@ -53,8 +53,31 @@ async function loadStockIndexData(range = '24h') {
     '30d': 30 * 24
   };
 
-  const baseSelect =
-    'stock_index?select=timestamp,portfolio,value,describe&order=timestamp';
+  const VIEW_CONFIG = {
+    all: {
+      table: 'stock_index_daily',
+      timestampField: 'timestamp_bucket'
+    },
+    hourly: {
+      table: 'stock_index_hourly',
+      timestampField: 'timestamp_bucket'
+    }
+  };
+
+  const useHourlyView = range === '7d' || range === '30d';
+  const useDailyView = range === 'all';
+  const table = useDailyView
+    ? VIEW_CONFIG.all.table
+    : useHourlyView
+      ? VIEW_CONFIG.hourly.table
+      : 'stock_index';
+  const timestampField = useDailyView
+    ? VIEW_CONFIG.all.timestampField
+    : useHourlyView
+      ? VIEW_CONFIG.hourly.timestampField
+      : 'timestamp';
+
+  const baseSelect = `${table}?select=${timestampField},portfolio,value,describe&order=${timestampField}`;
   const hours = RANGE_TO_HOURS[range];
   if (!hours && range !== 'all') {
     throw new Error(`不支持的范围：${range}`);
@@ -64,7 +87,7 @@ async function loadStockIndexData(range = '24h') {
     ? new Date(Date.now() - hours * 60 * 60 * 1000).toISOString()
     : null;
   const query = cutoffIso
-    ? `${baseSelect}&timestamp=gte.${encodeURIComponent(cutoffIso)}`
+    ? `${baseSelect}&${timestampField}=gte.${encodeURIComponent(cutoffIso)}`
     : baseSelect;
 
   // Supabase REST API 默认 limit=1000；7D/30D 可能超过单页，需要分页读取。
@@ -221,7 +244,9 @@ function transformStockRows(rows) {
   const descriptions = {};
 
   rows.forEach((row) => {
-    const time = new Date(row.timestamp);
+    const timestampRaw =
+      row.timestamp || row.timestamp_bucket || row.ts_bucket || row.ts;
+    const time = new Date(timestampRaw);
     const value = parseFloat(normalizeNumberString(row.value));
     if (Number.isNaN(value) || Number.isNaN(time.valueOf())) {
       return;

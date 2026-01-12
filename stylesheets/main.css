@@ -68,49 +68,48 @@ body {
 .app-nav-switch {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
-  padding: 0.25rem;
-  background: #f7f7f5;
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  border-radius: 999px;
-  box-shadow: 0 0.5rem 1.25rem -1rem rgba(15, 23, 42, 0.2);
+  gap: 0.5rem;
+  padding: 0.2rem;
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 0.6rem;
+  box-shadow: none;
 }
 
 .nav-switch-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.45rem 0.9rem;
-  border-radius: 999px;
+  padding: 0.35rem 0.85rem;
+  border-radius: 0.5rem;
   font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
+  font-weight: 600;
+  letter-spacing: 0.06em;
   text-decoration: none;
   color: #1f2933;
-  background: #ffffff;
+  background: transparent;
   border: 1px solid transparent;
-  transition: all 0.2s ease;
+  transition: color 0.2s ease, background-color 0.2s ease;
 }
 
 .nav-switch-btn:hover,
 .nav-switch-btn:focus {
-  color: #111827;
-  border-color: rgba(15, 23, 42, 0.12);
-  box-shadow: 0 0.5rem 1rem -0.75rem rgba(15, 23, 42, 0.25);
+  color: #0f172a;
+  background: rgba(15, 23, 42, 0.06);
 }
 
 .nav-switch-btn.active {
   color: #ffffff;
-  background: linear-gradient(135deg, #111827, #1f2933);
-  border-color: #111827;
-  box-shadow: 0 0.75rem 1.5rem -1rem rgba(17, 24, 39, 0.35);
+  background: #1f2933;
+  border-color: #1f2933;
+  box-shadow: none;
 }
 
 .nav-switch-btn.disabled {
   cursor: not-allowed;
-  color: rgba(17, 24, 39, 0.35);
-  background: #f4f4f2;
-  border-color: rgba(17, 24, 39, 0.08);
+  color: rgba(17, 24, 39, 0.4);
+  background: transparent;
+  border-color: transparent;
   box-shadow: none;
 }
 
